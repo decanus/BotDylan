@@ -14,6 +14,25 @@
  */
 #pragma once
 
+// ===== THE VOICES ==========================================================
+// One entry per singer. formantScale multiplies all three formant centre
+// frequencies: below 1.0 reads as a physically bigger person, which is what
+// makes the bass a bass rather than a transposed soprano.
+struct VoiceDef {
+  const char *name;
+  float vibratoHz;
+  float detuneCents;
+  float formantScale;
+  float level;          // gain into the output mixer
+};
+
+// Step-3 state: soprano alone, at the values the mono voice has always had.
+// Alto and bass join in the next commit.
+const VoiceDef VOICE_DEFS[] = {
+  { "soprano", 5.2f, 0.0f, 1.00f, 1.00f },
+};
+const int VOICE_COUNT = sizeof(VOICE_DEFS) / sizeof(VOICE_DEFS[0]);
+
 // ===== GLOTTAL SOURCE ======================================================
 const float GLOTTIS_AMP_BASE   = 0.25f;  // amplitude at velocity 0
 const float GLOTTIS_AMP_SCALE  = 0.5f;   // ...plus this much at velocity 127
@@ -28,7 +47,8 @@ const float VIBRATO_LFO_AMP   = 0.35f;
 const float VIBRATO_FM_OCTAVES = 0.12f;
 
 // ===== BREATH ==============================================================
-const float BREATH_DEFAULT  = 0.06f;
+const float BREATH_SOURCE_AMP = 1.0f;   // the noise generator's own level
+const float BREATH_DEFAULT  = 0.06f;    // ...and how much of it each voice takes
 const float BREATH_CC_BASE  = 0.02f;
 const float BREATH_CC_SPAN  = 0.25f;
 
@@ -56,3 +76,14 @@ const int   CONTROL_INTERVAL_MS = 5;    // 200 Hz control rate
 const float PITCH_BEND_SEMIS    = 2.0f;
 const int   NOTE_STACK_SIZE     = 10;
 const float VOWEL_START         = 2.0f; // "ah"
+
+// ===== JAW, POLYPHONIC =====================================================
+// The jaw follows the soprano. When only the lower voices sound there is no
+// velocity to follow, so the mouth sits at a neutral opening rather than shut.
+const float JAW_IDLE_OPEN = 0.45f;
+
+// ===== AUDIO ENGINE ========================================================
+// Blocks for the Audio Library. Each voice is waveform + LFO + 3 filters +
+// 2 mixers + envelope, so this has to grow with the choir. Watch
+// AudioMemoryUsageMax() after changing it.
+const int AUDIO_MEMORY_BLOCKS = 24;

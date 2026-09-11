@@ -1,29 +1,66 @@
 /*
- * voice.h — the singing voice: formant engine plus note priority.
+ * voice.h — one singer.
  *
- * Owns the note stack (monophonic, last-note priority, legato) as well as
- * the synthesis, and drives the jaw target as a side effect of note events
- * so that mouth sync can never fall out of step with the sound.
+ * Owns its own audio nodes as members. The Teensy Audio Library requires
+ * AudioStream objects to live in static storage, which a global instance of
+ * this class satisfies: the members are constructed as part of the global.
+ * AudioConnection members MUST be declared after the nodes they join, because
+ * members are constructed in declaration order.
  *
- * The CC-valued setters take raw 0..127 MIDI values on purpose: the vowel
- * table size stays private to voice.cpp, and the scaling arithmetic stays in
- * one place. midi_io/ decides WHICH CC does what; voice/ decides what it does.
+ * A Voice is monophonic with last-note priority. Three of them make the choir;
+ * see choir.h for the shared vowel position and channel allocation.
  */
 #pragma once
 
-#include <Arduino.h>
+#include <Audio.h>
 
-void voiceBegin();
+#include "house_sound.h"
 
-// Note events. velocity 0 is treated as a note-off, per MIDI convention.
-void voiceNoteOn(int note, int velocity);
-void voiceNoteOff(int note);
-void voiceAllNotesOff();
+class Voice {
+ public:
+  Voice(const VoiceDef &def, AudioStream &breathSrc,
+        AudioStream &outDest, uint8_t outPort);
 
-// Continuous controllers, raw MIDI ranges.
-void voiceSetVowelCC(int value);    // 0..127, morphs oo -> oh -> ah -> eh -> ee
-void voiceSetBreathCC(int value);   // 0..127, breath/air amount
-void voiceSetPitchBend(int bend);   // -8192..8191, +/- 2 semitones
+  void begin();
 
-// Fractional index into the vowel table; the jaw uses it for mouth shape.
-float voiceVowelPos();
+  void noteOn(int note, int velocity);
+  void noteOff(int note);
+  void allNotesOff();
+
+  void setVowel(float vowelPos);     // the choir shares one vowel position
+  void setBreath(float level);
+  void setPitchBend(float semis);
+  void setVibratoRate(float sopranoHz);   // scaled by this voice's ratio
+
+  bool  sounding() const { return currentNote_ >= 0; }
+  float velocity() const { return noteVelocity_; }
+  const VoiceDef &def() const { return def_; }
+
+  // --- audio nodes: construction order matters, do not reorder ---
+  AudioSynthWaveform          vibratoLFO;
+  AudioSynthWaveformModulated glottis;
+  AudioMixer4                 sourceMix;
+  AudioFilterStateVariable    formant1;
+  AudioFilterStateVariable    formant2;
+  AudioFilterStateVariable    formant3;
+  AudioMixer4                 formantMix;
+  AudioEffectEnvelope         env;
+
+  // --- connections: declared after the nodes, on purpose ---
+  AudioConnection cLfoToGlottis, cGlottisToSource, cBreathToSource;
+  AudioConnection cSourceToF1, cSourceToF2, cSourceToF3;
+  AudioConnection cF1ToMix, cF2ToMix, cF3ToMix;
+  AudioConnection cMixToEnv, cEnvToOut;
+
+ private:
+  void startNote(int note, int velocity);
+  void releaseOrFall();
+  void updatePitch();
+
+  const VoiceDef &def_;
+  int   currentNote_;
+  float noteVelocity_;
+  float bendSemis_;
+  int   noteStack_[NOTE_STACK_SIZE];   // last-note priority / legato
+  int   noteStackLen_;
+};

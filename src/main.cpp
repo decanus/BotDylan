@@ -46,7 +46,8 @@
  * --------------------------
  *   config.h            pins, input flags, which voice preset is compiled in
  *   voice/audio_graph   the Audio Library objects + connections, all in one TU
- *   voice/voice         formant engine, note priority, drives the jaw target
+ *   voice/voice         one singer: formant engine + note priority
+ *   voice/choir         the singers together: shared vowel, channel map
  *   voice/presets/      vowel formant tables — the tuning data
  *   face/jaw            eased servo motion model
  *   midi_io/            the three inputs + the MIDI map
@@ -61,13 +62,13 @@
 #include "face/jaw.h"
 #include "house_sound.h"
 #include "midi_io/midi_io.h"
-#include "voice/voice.h"
+#include "voice/choir.h"
 
 elapsedMillis controlTimer;
 
 // ===== SETUP / LOOP ========================================================
 void setup() {
-  voiceBegin();   // audio memory, glottis, vibrato, breath, formants, envelope
+  choirBegin();   // audio memory, then every singer's nodes
   jawBegin();     // servo to its closed position
   midiBegin();    // USB device, DIN/TRS serial, USB host
 }
@@ -79,6 +80,6 @@ void loop() {
   // 200 Hz control rate: ease jaw toward target; vowel affects mouth shape
   if (controlTimer >= CONTROL_INTERVAL_MS) {
     controlTimer = 0;
-    jawUpdate(voiceVowelPos());
+    jawUpdate(choirVowelPos());
   }
 }

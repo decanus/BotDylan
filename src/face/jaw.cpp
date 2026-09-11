@@ -15,7 +15,7 @@
 static PWMServo jawServo;
 
 static float jawActual = 0.0f;   // 0 closed .. 1 open
-static float jawTarget = 0.0f;
+static float jawTargetValue = 0.0f;
 
 void jawBegin() {
   jawServo.attach(JAW_PIN);
@@ -23,7 +23,11 @@ void jawBegin() {
 }
 
 void jawSetTarget(float target) {
-  jawTarget = target;
+  jawTargetValue = target;
+}
+
+float jawTarget() {
+  return jawTargetValue;
 }
 
 void jawUpdate(float vowelPos) {
@@ -33,7 +37,7 @@ void jawUpdate(float vowelPos) {
   // divisor is half the table length — so this assumes a 5-entry preset
   // centered on the open vowel. See NOTES.md before reshaping a preset.
   float vowelOpenness = 1.0f - JAW_VOWEL_NARROW * fabsf(vowelPos - 2.0f) / 2.0f;
-  float target = jawTarget * vowelOpenness;
+  float target = jawTargetValue * vowelOpenness;
 
   float rate = (target > jawActual) ? JAW_OPEN_RATE : JAW_CLOSE_RATE;
   jawActual += (target - jawActual) * rate;

@@ -11,6 +11,7 @@ void jawBegin();
 
 // 0.0 = closed .. 1.0 = fully open. The motion model eases toward this.
 void jawSetTarget(float target);
+float jawTarget();
 
 // Call at the control rate (200 Hz). vowelPos is the fractional index into
 // the vowel table — rounder vowels open the mouth further.

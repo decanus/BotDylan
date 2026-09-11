@@ -13,7 +13,7 @@
 
 #include "config.h"
 #include "midi_io/midi_io.h"
-#include "voice/voice.h"
+#include "voice/choir.h"
 
 #if ENABLE_DIN_MIDI
 #include <MIDI.h>
@@ -29,29 +29,29 @@ MIDIDevice_BigBuffer hostMIDI(usbHost);
 
 // ===== SHARED MIDI HANDLERS (all three inputs land here) ==================
 static void onNoteOn(byte ch, byte note, byte vel) {
-  voiceNoteOn(note, vel);
+  choirNoteOn(ch, note, vel);
 }
 
 static void onNoteOff(byte ch, byte note, byte vel) {
-  voiceNoteOff(note);
+  choirNoteOff(ch, note);
 }
 
 static void onControlChange(byte ch, byte cc, byte val) {
   switch (cc) {
     case 1:                                         // mod wheel: vowel morph
-      voiceSetVowelCC(val);
+      choirSetVowelCC(val);
       break;
     case 2:                                         // breath / air
-      voiceSetBreathCC(val);
+      choirSetBreathCC(val);
       break;
     case 123:                                       // all notes off
-      voiceAllNotesOff();
+      choirAllNotesOff();
       break;
   }
 }
 
 static void onPitchChange(byte ch, int bend) {
-  voiceSetPitchBend(bend);
+  choirSetPitchBend(ch, bend);
 }
 
 // ===== SETUP / READ ========================================================

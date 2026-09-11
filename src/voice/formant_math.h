@@ -40,3 +40,9 @@ inline void formantTargetsFor(float vowelPos, float formantScale,
                   * FORMANT_MIX_SCALE;
   }
 }
+
+// Equal temperament, A4 = 440 Hz. Fractional notes are meaningful: pitch bend
+// and per-voice detune are both folded in before this is called.
+inline float midiToFreq(float note) {
+  return 440.0f * powf(2.0f, (note - 69.0f) / 12.0f);
+}

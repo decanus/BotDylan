@@ -1,36 +1,27 @@
 /*
  * audio_graph.cpp — the signal path, and nothing else.
  *
- * Every Audio Library object and every connection lives here, at global
- * scope, in one translation unit. Add a node (a consonant noise burst, a
- * second formant bank) by declaring it here and extern'ing it in the header.
+ * Per voice (built inside the Voice class, see voice.cpp):
+ *   vibrato LFO -> FM input of sawtooth "glottis"
+ *   glottis + shared breath noise -> source mixer
+ *   -> three parallel bandpass filters -> formant mixer -> envelope
+ *
+ * Shared here:
+ *   every voice's envelope -> MQS output
+ *
+ * Everything is at global scope because the Audio Library requires static
+ * storage, and in one translation unit so construction order is fixed.
  */
 
 #include "voice/audio_graph.h"
 
-// ===== AUDIO GRAPH =========================================================
-// vibrato LFO -> FM input of sawtooth "glottis"
-// glottis + breath noise -> source mixer -> three parallel bandpass filters
-// -> formant mixer -> envelope -> MQS output
-AudioSynthWaveform          vibratoLFO;
-AudioSynthWaveformModulated glottis;
-AudioSynthNoiseWhite        breath;
-AudioMixer4                 sourceMix;
-AudioFilterStateVariable    formant1;
-AudioFilterStateVariable    formant2;
-AudioFilterStateVariable    formant3;
-AudioMixer4                 formantMix;
-AudioEffectEnvelope         env;
-AudioOutputMQS              audioOut;
+AudioSynthNoiseWhite breath;
+AudioOutputMQS       audioOut;
 
-AudioConnection p1(vibratoLFO, 0, glottis, 0);
-AudioConnection p2(glottis, 0, sourceMix, 0);
-AudioConnection p3(breath,  0, sourceMix, 1);
-AudioConnection p4(sourceMix, 0, formant1, 0);
-AudioConnection p5(sourceMix, 0, formant2, 0);
-AudioConnection p6(sourceMix, 0, formant3, 0);
-AudioConnection p7(formant1, 1, formantMix, 0);   // port 1 = bandpass out
-AudioConnection p8(formant2, 1, formantMix, 1);
-AudioConnection p9(formant3, 1, formantMix, 2);
-AudioConnection p10(formantMix, 0, env, 0);
-AudioConnection p11(env, 0, audioOut, 0);
+// One singer for now. Each takes the shared breath bed, and the output node
+// plus the port it should land on.
+Voice voiceSoprano(VOICE_DEFS[0], breath, audioOut, 0);
+
+Voice *const VOICES[] = { &voiceSoprano };
+static_assert(sizeof(VOICES) / sizeof(VOICES[0]) == VOICE_COUNT,
+              "VOICES[] must match VOICE_DEFS[]");
