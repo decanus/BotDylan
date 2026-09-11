@@ -41,6 +41,10 @@
  * USBHost_t36.
  */
 
+// A .ino gets Arduino.h and auto-generated function prototypes for free.
+// A plain .cpp gets neither, so we include it ourselves (and forward-declare
+// onNoteOff further down). Nothing else about the sketch changes.
+#include <Arduino.h>
 #include <Audio.h>
 #include <PWMServo.h>
 
@@ -175,6 +179,11 @@ void releaseOrFall() {
 }
 
 // ===== SHARED MIDI HANDLERS (all three inputs land here) ==================
+// Forward declaration: onNoteOn() below dispatches a velocity-0 note-on to
+// onNoteOff(), which is defined after it. The Arduino .ino preprocessor used
+// to generate this prototype for us.
+void onNoteOff(byte ch, byte note, byte vel);
+
 void onNoteOn(byte ch, byte note, byte vel) {
   if (vel == 0) { onNoteOff(ch, note, 0); return; }
   if (currentNote >= 0 && noteStackLen < 10) {
