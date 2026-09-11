@@ -229,19 +229,93 @@ def build_note(vw,on,co,dur_s,dic,smear_ms,release_above=2500,recipes="reference
     return bands, voi_s, N
 
 
+def load_envelopes(path):
+    """Envelope bank from tools/lyric_to_envelopes.py, keyed by syllable."""
+    z = np.load(path, allow_pickle=False)
+    out = {}
+    for syl in z["syllables"]:
+        syl = str(syl)
+        out[syl] = (z[f"{syl}/bands"].astype(float), z[f"{syl}/voi"].astype(float),
+                    tuple(int(v) for v in z[f"{syl}/seg"]))
+    return out
+
+
+def build_note_envelope(entry, dur_s, smear_ms, release_above=2500):
+    """Assemble a note from an ANALYSED syllable rather than a recipe.
+
+    Time-stretch policy: the consonant head and tail run at natural speed and
+    only the vowel steady-state is stretched. Stretching a consonant is what
+    makes synthetic singing sound drunk.
+
+    Rules 2, 3 and 4 are still applied here, exactly as for the recipe path, so
+    there is one implementation of them rather than two that can drift.
+    """
+    src_b, src_v, (ns, ne) = entry
+    N = max(6, round(dur_s/FR))
+    head, tail = ns, src_b.shape[1]-ne
+    if head+tail+2 > N:                      # note too short: shrink both ends
+        k = max(0.0, (N-2)/max(1, head+tail))
+        head, tail = int(head*k), int(tail*k)
+    mid = max(1, N-head-tail)
+
+    bands = np.zeros((NB, N)); voi = np.zeros(N)
+    for i in range(head):
+        bands[:, i] = src_b[:, i]; voi[i] = src_v[i]
+    if ne > ns:
+        for j in range(mid):                 # linear read through the nucleus
+            t = (ns + (ne-1-ns)*(j/max(1, mid-1))) if ne-1 > ns else ns
+            i0 = int(t); i1 = min(i0+1, src_b.shape[1]-1); f = t-i0
+            bands[:, head+j] = src_b[:, i0]*(1-f) + src_b[:, i1]*f
+            voi[head+j] = src_v[i0]*(1-f) + src_v[i1]*f
+    for j in range(tail):
+        src = ne + int(j*(src_b.shape[1]-ne)/max(1, tail))
+        k = head+mid+j
+        if k < N:
+            bands[:, k] = src_b[:, min(src, src_b.shape[1]-1)]
+            voi[k] = src_v[min(src, src_b.shape[1]-1)]
+
+    # Rule 3: articulation dip after an unvoiced onset.
+    if head > 0 and src_v[:head].max() < 0.3 and head < N:
+        bands[:, head] = bands[:, head]*0.15; voi[head] = 1.0
+
+    # Rule 2: asymmetric smear, same coefficients as the recipe path.
+    a_att = np.exp(-10/max(2, smear_ms)); a_rel = np.exp(-10/4)
+    st = np.zeros(NB)
+    for i in range(N):
+        tgt = bands[:, i]
+        for b in range(NB):
+            a = a_att if (tgt[b] >= st[b] or BANDS[b] <= release_above) else a_rel
+            st[b] = a*st[b] + (1-a)*tgt[b]
+        bands[:, i] = st.copy()
+    sv = 0; voi_s = np.zeros(N); a_vup = np.exp(-10/5)
+    for i in range(N):
+        a = a_vup if voi[i] >= sv else a_att
+        sv = a*sv + (1-a)*voi[i]; voi_s[i] = sv
+
+    # Rule 4: hard-zero tails.
+    bands[:, -3] *= 0.4; bands[:, -2] = 0; bands[:, -1] = 0
+    return bands, voi_s, N
+
+
 def render(notes, quarter_ms, dic, smear_ms, gap_ms=REF_GAP_MS, release_above=2500,
-           recipes="reference"):
+           recipes="reference", envelopes=None):
     """notes: [(midi, beats, vowelCC, velocity, onset, coda)], rests as midi=None."""
-    total_ms = sum(round(b*quarter_ms) for _,b,_,_,_,_ in notes) + 600
+    total_ms = sum(round(n[1]*quarter_ms) for n in notes) + 600
     NF = round(total_ms/10)
     g_bands = np.zeros((NB,NF)); g_voi = np.ones(NF); g_f0 = np.full(NF, 220.0)
     t = 0
-    for note,beats,vw,vel,on,co in notes:
+    for entry in notes:
+        note,beats,vw,vel,on,co = entry[:6]
+        syl = entry[6] if len(entry) > 6 else ""
         if note is None:                       # a rest just advances the clock
             t += round(beats*quarter_ms); continue
         dur_s = (round(beats*quarter_ms)-gap_ms)/1000
-        bands, voi, N = build_note(vw,on,co,dur_s,dic,smear_ms,release_above,recipes,
-                                   mtof(note))
+        if envelopes and syl in envelopes:
+            bands, voi, N = build_note_envelope(envelopes[syl], dur_s, smear_ms,
+                                                release_above)
+        else:
+            bands, voi, N = build_note(vw,on,co,dur_s,dic,smear_ms,release_above,
+                                       recipes, mtof(note))
         lvl = REF_LEVEL_BASE+REF_LEVEL_SCALE*(vel/127)
         off = round(t/10); n = min(N, NF-off)
         g_bands[:,off:off+n] = bands[:,:n]*lvl
@@ -281,7 +355,8 @@ def render(notes, quarter_ms, dic, smear_ms, gap_ms=REF_GAP_MS, release_above=25
 def notes_from_song(song, voice="sop", first=None):
     rows = song["notes"][:first] if first else song["notes"]
     return [(n.get(voice), n["beats"], n["vowelCC"], n.get("velocity") or 0,
-             n.get("onset","") or "", n.get("coda","") or "") for n in rows]
+             n.get("onset","") or "", n.get("coda","") or "",
+             n.get("syllable","") or "") for n in rows]
 
 
 def verify(song_path):
@@ -347,6 +422,11 @@ def main(argv=None):
                     help="consonant recipe set. 'reference' reproduces the frozen "
                          "spec and is what --verify checks; later sets carry tuning "
                          "changes that came from listening verdicts.")
+    ap.add_argument("--envelopes", type=pathlib.Path, default=None,
+                    help="eSpeak-analysed envelope bank from "
+                         "lyric_to_envelopes.py. Syllables found in it use the "
+                         "measured envelope; anything missing falls back to the "
+                         "hand-written recipes.")
     ap.add_argument("--voice", default="sop", choices=["sop","alto","bass"])
     ap.add_argument("--first", type=int, default=None,
                     help="render only the first N notes")
@@ -364,8 +444,9 @@ def main(argv=None):
         ap.error("-o/--out is required unless --verify is given")
     song = json.loads(args.song.read_text())
     notes = notes_from_song(song, args.voice, args.first)
+    env = load_envelopes(args.envelopes) if args.envelopes else None
     out = render(notes, song["quarterMs"], args.diction, args.smear, args.gap_ms,
-                 args.release_above, args.recipes)
+                 args.release_above, args.recipes, env)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     wavfile.write(str(args.out), SR, (out*32767).astype(np.int16))
 

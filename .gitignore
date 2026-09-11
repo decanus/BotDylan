@@ -39,3 +39,6 @@ build/
 
 # Reference and listening renders
 *.wav
+
+# eSpeak envelope banks (derived from songs/*.json)
+*.envelopes.npz
