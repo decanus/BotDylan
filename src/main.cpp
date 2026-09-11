@@ -1,6 +1,6 @@
 /*
- * ROBOT VOICE — self-singing formant synth for Teensy 4.1 (or 4.0)
- * =================================================================
+ * BOT DYLAN — self-singing formant synth for Teensy 4.1 (or 4.0)
+ * ===============================================================
  * A MIDI-controlled singing voice, no vocoder, no human vocal input.
  * The same MIDI notes that make the sound also drive the jaw servo,
  * so mouth sync is automatic and perfect.
