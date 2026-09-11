@@ -130,7 +130,7 @@ mirrored into `src/face/` as the hardware catches up.
 |---|---|---|
 | Jaw | Eases toward a target, never snaps. Opens fast, closes lazily — a syllable starts abruptly and the mouth relaxes shut. Wider on louder notes, and narrowed by closed vowels. | open 0.28 / close 0.11 per control tick; openness `0.35 + 0.65 × velocity`; vowel narrowing up to 35% at the table's ends |
 | Eye wobble | Pupils drift side to side, but **only while sound is on**. A face that idles in motion reads as a screensaver. | ±2 units, `sin(t / 380 ms)` → period ≈ 2.39 s |
-| Eyebrows | Ease into a raised position while anything is singing — song, keyboard or MIDI — and ease back down after. | raised 2 units, eased 0.08 per frame |
+| Eyebrows | Ease up while anything is singing — song, keyboard or MIDI — and further on a harder note, so a phrase has expression rather than one lift per song. Ease back down after. | 4 units at velocity 0, 8 at velocity 127; eased 0.08 per frame. In the firmware, 0.5–1.0 on a 0–1 scale |
 
 The common rule across all three: **nothing snaps, and motion is tied to sound
 rather than to the clock.**

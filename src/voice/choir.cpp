@@ -72,7 +72,9 @@ void choirNoteOn(int channel, int note, int velocity) {
   } else if (jawTarget() == 0.0f) {
     jawSetTarget(JAW_IDLE_OPEN);
   }
-  browSetTarget(BROW_RAISED);   // brows lift for any voice, not just the soprano
+  // Brows lift for any voice, not just the soprano, and further on a harder
+  // note — the same drive the jaw uses.
+  browSetTarget(BROW_VEL_BASE + BROW_VEL_SCALE * (velocity / 127.0f));
 }
 
 void choirNoteOff(int channel, int note) {

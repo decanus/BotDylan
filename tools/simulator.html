@@ -157,9 +157,14 @@ const ENV={attackMs:45, decayMs:120, sustain:0.85, releaseMs:260,
    50.4 cents, which is depth 45 on the slider below. */
 const VIBRATO_MAX_CENTS=112;
 const JAW={openRate:0.28, closeRate:0.11};
+/* Brows: raised while anything sings, and nudged by how hard the note was hit,
+   so a phrase has expression rather than one lift at the top of the song.
+   Units are SVG units in a 200x130 viewBox — 2 units was 2 px and invisible.
+   Mirrored in the firmware as 0.5 + 0.5*velocity on a 0..1 scale. */
+const BROW={base:4, vel:4, rate:0.08};
 
 let ctx=null, master=null, voices=[], timers=[], singing=false;
-let jawA=0, jawT=0, vowelPos=2, anyOn=false, browA=0, vibDepthScale=1;
+let jawA=0, jawT=0, vowelPos=2, anyOn=false, browA=0, browV=0, vibDepthScale=1;
 
 const $=id=>document.getElementById(id);
 const mtof=n=>440*Math.pow(2,(n-69)/12);
@@ -225,6 +230,7 @@ function voiceOn(idx,note,vel){
  g.linearRampToValueAtTime(peak,t0+ENV.attackMs/1000);
  g.linearRampToValueAtTime(peak*ENV.sustain,t0+(ENV.attackMs+ENV.decayMs)/1000);
  if(idx===0) jawT=0.35+0.65*v; else if(jawT===0) jawT=0.45;
+ browV=v;
 }
 function voiceOff(idx){
  const vc=voices[idx]; if(!vc) return;
@@ -244,10 +250,10 @@ function tick(){
  const wob=anyOn?Math.sin(Date.now()/380)*2:0;
  $("pupilL").setAttribute("cx",(70+wob).toFixed(1));
  $("pupilR").setAttribute("cx",(130+wob).toFixed(1));
- browA+=(((singing||anyOn)?2:0)-browA)*0.08;
- const bu=browA.toFixed(2);
- $("browL").setAttribute("d","M 52 "+(24-bu)+" Q 70 "+(18-bu)+" 88 "+(24-bu));
- $("browR").setAttribute("d","M 112 "+(24-bu)+" Q 130 "+(18-bu)+" 148 "+(24-bu));
+ browA+=(((singing||anyOn)?(BROW.base+BROW.vel*browV):0)-browA)*BROW.rate;
+ const be=(24-browA).toFixed(2), bc=(18-browA).toFixed(2);   // end, control
+ $("browL").setAttribute("d","M 52 "+be+" Q 70 "+bc+" 88 "+be);
+ $("browR").setAttribute("d","M 112 "+be+" Q 130 "+bc+" 148 "+be);
  requestAnimationFrame(tick);
 }
 

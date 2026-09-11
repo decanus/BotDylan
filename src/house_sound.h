@@ -106,16 +106,21 @@ const float VOWEL_START         = 2.0f; // "ah"
 const float JAW_IDLE_OPEN = 0.45f;
 
 // ===== BROWS ===============================================================
-// The brows lift while anything is singing and settle back after. Two units of
-// travel in the simulator's coordinates — small on purpose; at that scale the
-// gap between "expressive" and "cartoon" is a couple of pixels.
+// The brows lift while anything is singing and settle back after, and lift
+// further on a harder note, so a phrase has expression rather than one move at
+// the top of the song. 0.5 at velocity 0, 1.0 at velocity 127; the simulator
+// draws the same thing as 4..8 SVG units.
+//
+// The original 2 units of travel measured 2.11 px on screen and read as no
+// movement at all. See NOTES.md.
 //
 // Expressed as a TIME CONSTANT, not a per-tick rate, and this matters: the
 // simulator eases 0.08 per animation frame at ~60 fps, which is a ~200 ms time
 // constant. Copying the number 0.08 to a 200 Hz control loop would ease 3.3x
 // too fast. Same number, different tick rate, different feel. See NOTES.md.
-const float BROW_SMOOTH_MS = 200.0f;
-const float BROW_RAISED    = 1.0f;   // 0 resting .. 1 fully raised
+const float BROW_SMOOTH_MS  = 200.0f;
+const float BROW_VEL_BASE   = 0.5f;   // raised this much at velocity 0
+const float BROW_VEL_SCALE  = 0.5f;   // ...plus this much at velocity 127
 
 // ===== AUDIO ENGINE ========================================================
 // Blocks for the Audio Library. Each voice is waveform + LFO + 3 filters +

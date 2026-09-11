@@ -361,6 +361,32 @@ The measured eye wobble is `sin(t/380) × 2`, which is ±2 units at a period of
 2π × 380 ms ≈ **2.39 s** — worth stating because the spec handed over said
 ~2.6 s, and the code is the source of truth.
 
+## 2 px is not motion
+
+The brows shipped at 2 units of travel, per the spec. They animated correctly —
+the eased state moved, the path attribute updated every frame — and read as
+completely static on the live page.
+
+2 units in a 200x130 viewBox drawn at 210x137 px is **2.11 px**. Below noticing.
+
+The second half of the problem was that `singing` is a binary flag held true
+for a whole song, so even a visible amplitude would have given one lift at the
+start and one drop 18 seconds later. Expression needs something that changes
+per note.
+
+Both fixed together: the brows now sit at 4 units and lift toward 8 with note
+velocity, using the same drive signal the jaw already follows, so they move on
+every note. 5.8-7.4 px in practice, and visibly different between a quiet note
+and a loud one.
+
+The general lesson, which is the same one the eyebrows taught the first time:
+**an expressive parameter has to be checked against what it looks like, not
+against whether the code runs.** The animation was correct in both cases.
+
+**_(to fill in)_** Whether 4-8 units is right or now overshoots into cartoon.
+The brow control point reaches y=10 at full tilt and the face frame starts at
+y=8, so there are only 2 units of headroom left above it.
+
 ## ⚠️ The jaw eases 3.3x faster on hardware than in the simulator
 
 Found while deriving the brow constant. The parity rule compares *numbers*,
