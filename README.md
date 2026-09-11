@@ -188,6 +188,81 @@ the writer's code, so a writer bug cannot hide — and checks the header, chunk
 lengths, tempo against `quarterMs`, note-on/note-off balance, per-channel note
 counts against the JSON, and that CC1 and CC3 precede every note-on.
 
+## Teaching the robot songs
+
+Four ways in. All of them end at `songs/*.json`, and all of them end at your
+ear: **transcription output always gets a human listen before it enters
+`songs/`.** The pipeline transcribes; you sign off on repertoire.
+
+None of these tools fetch anything. They read local files you provide, and
+that is a standing rule, not an implementation detail.
+
+**1. A public-domain MIDI file**
+
+```sh
+python3 tools/midi_to_song.py hymn.mid -o songs/hymn.json
+python3 tools/song_to_wav.py songs/hymn.json -o /tmp/hymn.wav   # listen
+```
+
+Channels 1/2/3 map straight to soprano/alto/bass. Anything else, the melody
+track is taken as the soprano — `--track N` to override, `--unit quarter` if
+the default eighth grid is too fine.
+
+**2. Licensed MIDI, or sheet music entered in a DAW**
+
+Same command. Export from the DAW with the voices on channels 1/2/3 and it
+comes across intact, vowels and all.
+
+**3. Sing or hum it**
+
+```sh
+python3 tools/audio_to_song.py hum.wav -o songs/new.json --bpm 96 --key Am
+```
+
+The default transcriber needs nothing installed and handles a clean
+monophonic hum — a phone memo is the intended input. For a noisy or
+polyphonic recording, install the extras and use the better models:
+
+```sh
+python3.12 -m venv .venv-audio
+.venv-audio/bin/pip install -r tools/requirements-audio.txt
+.venv-audio/bin/python tools/audio_to_song.py take.mp3 -o songs/new.json \
+    --separate --transcriber basicpitch
+```
+
+Those extras pull in PyTorch — a couple of GB — and as of writing neither
+supports Python 3.14, hence the explicit `python3.12`. Both the cleaned `.mid`
+and the final `.json` are written, so a transcription that needs a human fix
+can be opened in a DAW.
+
+**4. Play it live**
+
+Open the simulator, set the record tempo, hit **Record**, play, hit stop. It
+downloads a song JSON. Works with a MIDI controller or the computer keys.
+
+**Then the words**
+
+```sh
+python3 tools/lyrics_to_vowels.py songs/new.json \
+    "A-ma-zing grace how sweet the sound" --compare   # dry run
+python3 tools/lyrics_to_vowels.py songs/new.json "..." -o songs/new.json
+```
+
+Whitespace splits words, hyphens split syllables. A syllable/note count
+mismatch is a hard error with a side-by-side alignment table — it will never
+quietly truncate your lyric.
+
+**And the checks**
+
+```sh
+python3 tools/roundtrip_test.py        # songs survive JSON -> MIDI -> JSON
+python3 tools/audio_pipeline_test.py   # and survive being rendered and re-heard
+node tools/check_song_parity.js        # songs match the simulator's copies
+```
+
+Adding a song to `songs/` means adding it to the simulator too, in the same
+commit. That is the parity rule, and `check_song_parity.js` enforces it.
+
 ## Build and flash
 
 ```sh

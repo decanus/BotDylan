@@ -411,3 +411,31 @@ the A minor and E major bars end up wanting.
 
 **_(to fill in)_** Whether the E-major bars (the G#3 in the alto) want a
 brighter vowel than the Am bars around them, to lean on the raised third.
+
+## Transcription artifacts, and which ones to keep
+
+The pipeline produces artifacts that are technically errors. Some of them
+should survive into `songs/`, because the voice is not a piano.
+
+- **Scoops.** A hummed note that slides into pitch gets transcribed as either a
+  short wrong note followed by the right one, or as one note starting flat. The
+  cleanup pass drops the short one by default (`--min-ms 80`). But the voice
+  already has 25 ms of portamento, so a real scoop and a transcription scoop
+  land in nearly the same place — and a scoop into a phrase is exactly what
+  makes the robot sound sung rather than sequenced. Consider lowering
+  `--min-ms` on expressive takes and keeping the "errors".
+- **Split notes.** A wobble across a semitone boundary splits one note into
+  two. `--merge-ms` sews them back up, but the threshold must stay **below the
+  60 ms re-articulation gap** or genuinely repeated notes fuse into one. 40 ms
+  is the default for that reason.
+- **Octave jumps.** Autocorrelation's classic failure is picking twice the true
+  period. There is a guard for it in the tracker and an octave-outlier collapse
+  in the cleanup, but on a breathy low take it still happens. A bass line an
+  octave up is obvious on a listen and invisible in a diff.
+
+**_(to fill in)_** Which of these actually sounded good once sung. The question
+is not whether the transcription is accurate; it is whether the robot sings it
+better with the artifact than without.
+
+**_(to fill in)_** Whether the naive transcriber's 80–800 Hz range is enough in
+practice, or whether humming down at the bass part needs the lower bound moved.
