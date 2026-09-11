@@ -9,22 +9,18 @@
 
 #include "config.h"
 #include "face/jaw.h"
+#include "house_sound.h"
 #include "voice/audio_graph.h"
+#include "voice/formant_math.h"   // pulls in the selected preset's VOWELS[]
 #include "voice/voice.h"
-#include "voice/vowel.h"
-
-// The compile-time voice selection, e.g. voice/presets/warm.h. Defines
-// VOWELS[] and NUM_VOWELS, and is included by this file alone.
-#include VOICE_PRESET_HEADER
 
 // ===== STATE ===============================================================
-static float vowelPos     = 2.0f;       // fractional index into VOWELS; start "ah"
-static float breathLevel  = 0.06f;
+static float vowelPos     = VOWEL_START;   // fractional index into VOWELS
+static float breathLevel  = BREATH_DEFAULT;
 static float bendSemis    = 0.0f;
 static int   currentNote  = -1;
 static float noteVelocity = 0.0f;
 
-static const int NOTE_STACK_SIZE = 10;
 static int noteStack[NOTE_STACK_SIZE];  // last-note priority / legato
 static int noteStackLen = 0;
 
@@ -34,21 +30,11 @@ static float midiToFreq(float note) {
 }
 
 static void applyVowel() {
-  float pos = constrain(vowelPos, 0.0f, (float)(NUM_VOWELS - 1));
-  int   i   = (int)pos;
-  int   j   = min(i + 1, NUM_VOWELS - 1);
-  float t   = pos - i;
-
-  for (int k = 0; k < 3; k++) {
-    // Geometric interpolation of frequencies sounds smoother than linear
-    float freq = VOWELS[i].f[k] * powf(VOWELS[j].f[k] / VOWELS[i].f[k], t);
-    float gain = VOWELS[i].g[k] + (VOWELS[j].g[k] - VOWELS[i].g[k]) * t;
-    switch (k) {
-      case 0: formant1.frequency(freq); formantMix.gain(0, gain * 0.9f); break;
-      case 1: formant2.frequency(freq); formantMix.gain(1, gain * 0.9f); break;
-      case 2: formant3.frequency(freq); formantMix.gain(2, gain * 0.9f); break;
-    }
-  }
+  FormantTargets t;
+  formantTargetsFor(vowelPos, 1.0f, t);
+  formant1.frequency(t.freq[0]); formantMix.gain(0, t.gain[0]);
+  formant2.frequency(t.freq[1]); formantMix.gain(1, t.gain[1]);
+  formant3.frequency(t.freq[2]); formantMix.gain(2, t.gain[2]);
 }
 
 static void updatePitch() {
@@ -61,9 +47,9 @@ static void startNote(int note, int velocity) {
   currentNote  = note;
   noteVelocity = velocity / 127.0f;
   updatePitch();
-  glottis.amplitude(0.25f + 0.5f * noteVelocity);
+  glottis.amplitude(GLOTTIS_AMP_BASE + GLOTTIS_AMP_SCALE * noteVelocity);
   env.noteOn();
-  jawSetTarget(0.35f + 0.65f * noteVelocity);
+  jawSetTarget(JAW_VEL_BASE + JAW_VEL_SCALE * noteVelocity);
 }
 
 static void releaseOrFall() {
@@ -110,12 +96,12 @@ void voiceSetVowelCC(int value) {
 }
 
 void voiceSetBreathCC(int value) {
-  breathLevel = 0.02f + (value / 127.0f) * 0.25f;
+  breathLevel = BREATH_CC_BASE + (value / 127.0f) * BREATH_CC_SPAN;
   sourceMix.gain(1, breathLevel);
 }
 
 void voiceSetPitchBend(int bend) {
-  bendSemis = (bend / 8192.0f) * 2.0f;
+  bendSemis = (bend / 8192.0f) * PITCH_BEND_SEMIS;
   updatePitch();
 }
 
@@ -128,24 +114,24 @@ void voiceBegin() {
   AudioMemory(24);
 
   glottis.begin(WAVEFORM_BANDLIMIT_SAWTOOTH);
-  glottis.frequencyModulation(0.12f);   // vibrato depth
+  glottis.frequencyModulation(VIBRATO_FM_OCTAVES);   // vibrato depth
   glottis.amplitude(0.0f);
 
   vibratoLFO.begin(WAVEFORM_SINE);
-  vibratoLFO.frequency(5.2f);
-  vibratoLFO.amplitude(0.35f);
+  vibratoLFO.frequency(VIBRATO_HZ);
+  vibratoLFO.amplitude(VIBRATO_LFO_AMP);
 
   breath.amplitude(1.0f);
-  sourceMix.gain(0, 0.85f);
+  sourceMix.gain(0, SOURCE_GLOTTIS_GAIN);
   sourceMix.gain(1, breathLevel);
 
-  formant1.resonance(4.0f);
-  formant2.resonance(5.0f);
-  formant3.resonance(5.0f);
+  formant1.resonance(FORMANT_Q1);
+  formant2.resonance(FORMANT_Q2);
+  formant3.resonance(FORMANT_Q3);
   applyVowel();
 
-  env.attack(45);
-  env.decay(120);
-  env.sustain(0.85f);
-  env.release(260);
+  env.attack(ENV_ATTACK_MS);
+  env.decay(ENV_DECAY_MS);
+  env.sustain(ENV_SUSTAIN);
+  env.release(ENV_RELEASE_MS);
 }

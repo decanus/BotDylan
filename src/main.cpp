@@ -59,6 +59,7 @@
 
 #include "config.h"
 #include "face/jaw.h"
+#include "house_sound.h"
 #include "midi_io/midi_io.h"
 #include "voice/voice.h"
 
@@ -76,7 +77,7 @@ void loop() {
   midiRead();
 
   // 200 Hz control rate: ease jaw toward target; vowel affects mouth shape
-  if (controlTimer >= 5) {
+  if (controlTimer >= CONTROL_INTERVAL_MS) {
     controlTimer = 0;
     jawUpdate(voiceVowelPos());
   }

@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "face/jaw.h"
+#include "house_sound.h"
 
 static PWMServo jawServo;
 
@@ -31,10 +32,10 @@ void jawUpdate(float vowelPos) {
   // The 2.0f here is the index of "ah", the most open vowel, and the 2.0f
   // divisor is half the table length — so this assumes a 5-entry preset
   // centered on the open vowel. See NOTES.md before reshaping a preset.
-  float vowelOpenness = 1.0f - 0.35f * fabsf(vowelPos - 2.0f) / 2.0f;
+  float vowelOpenness = 1.0f - JAW_VOWEL_NARROW * fabsf(vowelPos - 2.0f) / 2.0f;
   float target = jawTarget * vowelOpenness;
 
-  float rate = (target > jawActual) ? 0.30f : 0.12f;   // fast open, slow close
+  float rate = (target > jawActual) ? JAW_OPEN_RATE : JAW_CLOSE_RATE;
   jawActual += (target - jawActual) * rate;
 
   int deg = JAW_CLOSED_DEG + (int)((JAW_OPEN_DEG - JAW_CLOSED_DEG) * jawActual);
