@@ -132,6 +132,17 @@
   </div>
 
   <div class="voices">
+    <label><input type="radio" name="mode" id="mode1" value="1" checked> Glide</label>
+    <label><input type="radio" name="mode" id="mode2" value="2"> Vocoder <span class="faint">(preview)</span></label>
+  </div>
+  <p class="hint" id="modeNote" style="display:none">
+    Mode 2 schedules band envelopes in real time, which adds artifacts the
+    offline render does not have — especially on mobile. <strong>The WAV
+    renders from <code>tools/vocoder_render.py</code> are the reference for
+    this mode, not this page.</strong>
+  </p>
+
+  <div class="voices">
     <label><input type="checkbox" id="vSop" checked> Soprano</label>
     <label><input type="checkbox" id="vAlt" checked> Alto</label>
     <label><input type="checkbox" id="vBas" checked> Bass</label>
@@ -451,7 +462,11 @@ function playSong(song){
    const vTarget=(vw/127)*4;
    vowelPos = gl==="w"?0 : gl==="l"?1.2 : vTarget;
    applyVowel();
-   if(s!==null)voiceOn(0,s,vel); if(a!==null)voiceOn(1,a,vel); if(b!==null)voiceOn(2,b,vel);
+   if(vocMode()){
+    if(s!==null) vocPlayNote(s,vel,vw,m[8]||"",m[9]||"",dur/1000);
+   } else {
+    if(s!==null)voiceOn(0,s,vel); if(a!==null)voiceOn(1,a,vel); if(b!==null)voiceOn(2,b,vel);
+   }
    if(gl) timers.push(setTimeout(()=>{vowelPos=vTarget; applyVowel();},ENV.glideMs));
    $("syllable").textContent=syl||"\u00A0";
   },at));
@@ -631,6 +646,142 @@ function recDownload(song){
  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 $("recBtn").addEventListener("click",recToggle);
+
+
+/* ---- Mode 2: vocoder (PREVIEW) -----------------------------------------
+   A Web Audio port of tools/vocoder_render.py, recipe set v2. Scheduling
+   band envelopes in real time introduces artifacts the offline render does
+   not have, so THIS IS NOT THE REFERENCE for this mode — the WAV renders
+   are. See the README parity rule.
+
+   Mode 1's audio engine above is untouched: this builds its own graph and
+   playSong only chooses between them. */
+const VOC={
+ NB:14, FR:0.01, Q:4.5, SMEAR:14,
+ LEVEL_BASE:0.25, LEVEL_SCALE:0.5,
+ VOWEL_FLOOR:0.35,            // sub-F1 floor: without it every note loses its root
+ GAP_MS:40
+};
+VOC.BANDS=[...Array(VOC.NB)].map((_,b)=>220*Math.pow(5600/220,b/(VOC.NB-1)));
+
+const vocTilt=s=>s.map((v,b)=>v*Math.min(1,Math.pow(4200/VOC.BANDS[b],0.6)));
+const vocBandOnly=(lo,hi,g)=>VOC.BANDS.map(f=>(f>=lo&&f<=hi)?g:0);
+const VOC_SIL=VOC.BANDS.map(()=>0.004);
+
+function vocVowel(cc){
+ const pos=Math.max(0,Math.min(4,(cc/127)*4)), i=Math.floor(pos), j=Math.min(i+1,4), t=pos-i;
+ const F=[0,1,2].map(k=>VOWELS[i].f[k]*Math.pow(VOWELS[j].f[k]/VOWELS[i].f[k],t));
+ const G=[0,1,2].map(k=>VOWELS[i].g[k]+(VOWELS[j].g[k]-VOWELS[i].g[k])*t);
+ let s=VOC.BANDS.map(fb=>[0,1,2].reduce((a,k)=>
+   a+G[k]*Math.exp(-0.5*Math.pow(Math.log(fb/F[k])/0.20,2)),0));
+ const mx=Math.max(...s); s=s.map(v=>v/mx);
+ return s.map((v,b)=>VOC.BANDS[b]<F[0]?Math.max(v,VOC.VOWEL_FLOOR):v);
+}
+
+/* v2 recipes. Pitch-relative nasals; z de-voiced to 0.25. */
+function vocCons(code,vw,dic,f0){
+ const seg=[], push=(sp,voi,ms,amp)=>seg.push([sp.map(v=>v*amp),voi,Math.max(1,Math.round(ms/10))]);
+ const vsp=vocVowel(vw);
+ if(code==="s") push(vocTilt(vocBandOnly(3800,5600,1)),0,60,0.28*dic);
+ else if(code==="z") push(vocTilt(vocBandOnly(3000,5600,1)),0.25,55,0.18*dic);
+ else if(code==="f") push(vocTilt(vocBandOnly(1800,5000,0.7)),0,55,0.16*dic);
+ else if(code==="t"){push(VOC_SIL,1,30,1); push(vocTilt(vocBandOnly(2600,5200,1)),0,20,0.30*dic);}
+ else if(code==="k"){push(VOC_SIL,1,30,1); push(vocBandOnly(1200,2400,1),0,20,0.30*dic);}
+ else if(code==="ch"){push(VOC_SIL,1,22,1); push(vocTilt(vocBandOnly(1800,4000,1)),0,50,0.26*dic);}
+ else if(code==="b"){push(VOC_SIL,1,20,1); push(vocBandOnly(200,600,1),1,20,0.5*dic);}
+ else if(code==="d"){push(VOC_SIL,1,20,1); push(vocBandOnly(1400,3000,1),1,18,0.28*dic);}
+ else if(code==="g"){push(VOC_SIL,1,22,1); push(vocBandOnly(900,2000,1),1,20,0.30*dic);}
+ else if(code==="h") push(vsp,0,55,0.30*dic);
+ else if(code==="m"||code==="n") push(vocBandOnly(0.8*f0,5.0*f0,1),1,90,0.45);
+ else if(code==="w") push(vocVowel(0),1,90,0.9);
+ else if(code==="l"||code==="r") push(vocVowel(38),1,90,0.9);
+ return seg;
+}
+
+function vocBuildNote(vw,on,co,durS,dic,f0){
+ const N=Math.max(6,Math.round(durS/VOC.FR));
+ const bands=[...Array(VOC.NB)].map(()=>new Float64Array(N));
+ const voi=new Float64Array(N), amp=new Float64Array(N);
+ let f=0;
+ const write=seg=>{for(const [sp,v,n] of seg){for(let q=0;q<n;q++){
+   if(f>=N)return; for(let b=0;b<VOC.NB;b++)bands[b][f]=sp[b]; voi[f]=v; amp[f]=1; f++;}}};
+ if(on) write(vocCons(on,vw,dic,f0));
+ const vsp=vocVowel(vw);
+ if("s z f h t k ch".split(" ").includes(on)&&f<N){
+  for(let b=0;b<VOC.NB;b++)bands[b][f]=vsp[b]*0.15; voi[f]=1; amp[f]=1; f++;   // rule 3
+ }
+ const coSeg=co?vocCons(co,vw,dic,f0):[];
+ const coN=coSeg.reduce((a,x)=>a+x[2],0);
+ const susEnd=N-coN-3, susStart=f;
+ while(f<susEnd&&f<N){
+  const t=(f-susStart)/Math.max(1,susEnd-susStart);
+  for(let b=0;b<VOC.NB;b++)bands[b][f]=vsp[b];
+  voi[f]=1; amp[f]=1-0.1*t; f++;
+ }
+ if(co) write(coSeg);
+ while(f<N){for(let b=0;b<VOC.NB;b++)bands[b][f]=0; voi[f]=voi[Math.max(0,f-1)]; amp[f]=0; f++;}
+ /* rule 2: asymmetric smear */
+ const aAtt=Math.exp(-10/VOC.SMEAR), aRel=Math.exp(-10/4);
+ const st=new Float64Array(VOC.NB);
+ for(let i=0;i<N;i++) for(let b=0;b<VOC.NB;b++){
+  const tgt=bands[b][i]*amp[i];
+  const a=(tgt>=st[b]||VOC.BANDS[b]<=2500)?aAtt:aRel;
+  st[b]=a*st[b]+(1-a)*tgt; bands[b][i]=st[b];
+ }
+ let sv=0; const aUp=Math.exp(-10/5);
+ for(let i=0;i<N;i++){const a=voi[i]>=sv?aUp:aAtt; sv=a*sv+(1-a)*voi[i]; voi[i]=sv;}
+ /* rule 4: hard-zero tails */
+ for(let b=0;b<VOC.NB;b++){bands[b][N-3]*=0.4; bands[b][N-2]=0; bands[b][N-1]=0;}
+ return {bands,voi,N};
+}
+
+let vocGraph=null;
+function vocBoot(){
+ if(vocGraph||!ctx) return vocGraph;
+ const g={};
+ g.out=ctx.createGain(); g.out.gain.value=1; g.out.connect(master);
+ g.osc=ctx.createOscillator(); g.osc.type="sawtooth"; g.osc.frequency.value=220;
+ g.sawG=ctx.createGain(); g.sawG.gain.value=0; g.osc.connect(g.sawG);
+ const len=ctx.sampleRate*2, buf=ctx.createBuffer(1,len,ctx.sampleRate), d=buf.getChannelData(0);
+ for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*0.35;
+ g.noise=ctx.createBufferSource(); g.noise.buffer=buf; g.noise.loop=true;
+ g.noiseG=ctx.createGain(); g.noiseG.gain.value=0; g.noise.connect(g.noiseG);
+ g.exc=ctx.createGain(); g.sawG.connect(g.exc); g.noiseG.connect(g.exc);
+ g.bands=[]; g.gains=[];
+ for(let b=0;b<VOC.NB;b++){
+  const bp=ctx.createBiquadFilter(); bp.type="bandpass";
+  bp.frequency.value=VOC.BANDS[b]; bp.Q.value=VOC.Q;
+  const gn=ctx.createGain(); gn.gain.value=0;
+  g.exc.connect(bp); bp.connect(gn); gn.connect(g.out);
+  g.bands.push(bp); g.gains.push(gn);
+ }
+ g.osc.start(); g.noise.start();
+ vocGraph=g; return g;
+}
+
+function vocPlayNote(note,vel,vw,on,co,durS){
+ const g=vocBoot(); if(!g) return;
+ const f0=mtof(note), t0=ctx.currentTime;
+ const {bands,voi,N}=vocBuildNote(vw,on,co,durS,1,f0);
+ const lvl=VOC.LEVEL_BASE+VOC.LEVEL_SCALE*(vel/127);
+ g.osc.frequency.setValueAtTime(f0,t0);
+ for(let i=0;i<N;i++){
+  const t=t0+i*VOC.FR;
+  g.sawG.gain.setValueAtTime(voi[i],t);
+  g.noiseG.gain.setValueAtTime((1-voi[i])*0.4,t);
+  for(let b=0;b<VOC.NB;b++){
+   const v=bands[b][i]*lvl*(b%2?-1:1);          // alternating polarity, rule 5
+   g.gains[b].gain.setValueAtTime(v,t);
+  }
+ }
+ if(jawT===0||true) jawT=0.35+0.65*(vel/127);
+ anyOn=true; browV=vel/127;
+ setTimeout(()=>{ if(!singing){anyOn=false; jawT=0;} }, durS*1000);
+}
+
+const vocMode=()=>$("mode2").checked;
+$("mode1").addEventListener("change",()=>{$("modeNote").style.display="none"; stopSong();});
+$("mode2").addEventListener("change",()=>{$("modeNote").style.display="block"; stopSong();});
 
 startFace();
 $("power").addEventListener("click",boot);

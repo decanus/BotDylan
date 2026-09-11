@@ -159,6 +159,15 @@ make that rule followable rather than aspirational. Two checks back it up:
 c++ -std=c++17 -I src tools/parity_check.cpp -o /tmp/parity && /tmp/parity
 node tools/check_song_parity.js
 python3 tools/song_to_midi.py --out /tmp/midi && python3 tools/verify_midi.py /tmp/midi/*.mid
+python3 tools/roundtrip_test.py
+```
+
+Vocoder mode (experimental, branch `mode/vocoder`) has its own, which need the
+venv from `tools/requirements-vocoder.txt`:
+
+```sh
+.venv-vocoder/bin/python tools/vocoder_render.py songs/amazing_grace.json --verify
+.venv-vocoder/bin/python tools/vocoder_check.py
 ```
 
 The first compiles the firmware's vowel math on the host — `formant_math.h` is
@@ -171,6 +180,26 @@ Where the two implementations genuinely disagreed, the resolution is recorded
 in NOTES.md: the simulator won on motion and levels, the firmware won on the
 envelope and the vibrato model, where the browser version was an approximation
 rather than a decision.
+
+### The rule is different for vocoder mode
+
+**For mode 2 the simulator is NOT the reference.** The WAV renders from
+`tools/vocoder_render.py` are.
+
+Mode 2 schedules 14 band envelopes at 10 ms frames in real time, and real-time
+parameter scheduling in a browser — especially on mobile — introduces artifacts
+the offline render does not have. The page is labelled a preview for that
+reason. It is there to let you play the engine interactively, not to judge it.
+
+The reference is instead pinned by a byte-for-byte test: `vocoder_render.py
+--verify` reproduces `tools/vocoder_reference.py`'s output exactly, hash for
+hash, inside the pinned environment. The simulator's mode 2 is cross-checked
+against the Python engine rather than trusted — the two agree on band gains to
+5e-07, which is float rounding.
+
+Mode 1's audio engine is untouched by any of this, and verified so: all seven
+of its functions and all four of its constant tables are byte-identical before
+and after mode 2 was added.
 
 ## Songs
 
