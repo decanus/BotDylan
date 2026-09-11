@@ -36,10 +36,10 @@
   }
   button:active{transform:translateY(1px);}
   button.primary{background:var(--accent); border-color:var(--accent-dark); color:#fff; font-weight:600;}
-  .ctrl-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px 24px; margin-top:14px;}
+  .ctrl-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:12px 24px; margin-top:14px;}
   .ctrl{display:flex; align-items:center; gap:10px; font-size:13px;}
-  .ctrl label{flex:0 0 108px; color:var(--faint);}
-  .ctrl input[type=range]{flex:1; accent-color:var(--accent);}
+  .ctrl label{flex:0 0 124px; color:var(--faint); font-size:12.5px; line-height:1.25;}
+  .ctrl input[type=range]{flex:1; min-width:0; accent-color:var(--accent);}
   .ctrl output{flex:0 0 52px; text-align:right; font-variant-numeric:tabular-nums; font-weight:600;}
   .voices{display:flex; gap:18px; justify-content:center; font-size:13px; margin-top:14px;}
   .voices label{display:flex; gap:6px; align-items:center;}
@@ -59,15 +59,65 @@
 
   <div class="well" aria-label="Robot face display">
     <span class="led" id="led"></span>
-    <svg id="face" viewBox="0 0 200 130" width="210" height="137" role="img" aria-label="Robot face">
-      <rect x="20" y="8" width="160" height="114" rx="16" fill="#fff" stroke="#C4C1B8"/>
-      <ellipse id="eyeL" cx="70" cy="50" rx="22" ry="22" fill="#F1EFE9" stroke="#C4C1B8"/>
-      <ellipse id="eyeR" cx="130" cy="50" rx="22" ry="22" fill="#F1EFE9" stroke="#C4C1B8"/>
-      <ellipse id="pupilL" cx="70" cy="50" rx="9" ry="9" fill="#22211E"/>
-      <ellipse id="pupilR" cx="130" cy="50" rx="9" ry="9" fill="#22211E"/>
-      <path id="browL" d="M 52 24 Q 70 18 88 24" stroke="#6E6B63" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <path id="browR" d="M 112 24 Q 130 18 148 24" stroke="#6E6B63" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <ellipse id="mouth" cx="100" cy="95" rx="20" ry="2.5" fill="#22211E"/>
+    <svg id="face" viewBox="0 0 200 250" width="250" height="312" role="img" aria-label="Bot Dylan">
+      <!-- Open frame: two rails, a top bar and a base plate. The build is
+           meant to show its working, so the chassis is structure, not a shell. -->
+      <rect x="22" y="8"   width="156" height="7"   fill="#3A3833"/>
+      <rect x="22" y="8"   width="7"   height="206" fill="#3A3833"/>
+      <rect x="171" y="8"  width="7"   height="206" fill="#3A3833"/>
+      <rect x="14" y="206" width="172" height="11" rx="2" fill="#2A2926"/>
+
+      <!-- Brow servo arms, above the head block -->
+      <path id="browL" d="M 46 30 Q 70 22 94 30" stroke="#8A867C" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path id="browR" d="M 106 30 Q 130 22 154 30" stroke="#8A867C" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+      <!-- Head block carrying the eyes -->
+      <rect x="32" y="38" width="136" height="62" rx="6" fill="#33312C"/>
+
+      <!-- Mouth cavity, revealed as the jaw drops -->
+      <rect x="70" y="98" width="60" height="26" rx="2" fill="#141310"/>
+
+      <!-- Eyeballs: printed spheres in cowls, the whole ball turns -->
+      <ellipse id="eyeL" cx="68" cy="66" rx="24" ry="24" fill="#F4F2EC" stroke="#1A1916" stroke-width="2"/>
+      <ellipse id="eyeR" cx="132" cy="66" rx="24" ry="24" fill="#F4F2EC" stroke="#1A1916" stroke-width="2"/>
+      <ellipse id="pupilL" cx="68" cy="66" rx="10" ry="10" fill="#1A1916"/>
+      <ellipse id="pupilR" cx="132" cy="66" rx="10" ry="10" fill="#1A1916"/>
+      <path d="M 44 60 A 24 24 0 0 1 92 60 L 92 50 A 24 24 0 0 0 44 50 Z" fill="#24231F" opacity="0.92"/>
+      <path d="M 108 60 A 24 24 0 0 1 156 60 L 156 50 A 24 24 0 0 0 108 50 Z" fill="#24231F" opacity="0.92"/>
+
+      <!-- Hinged jaw on the MG90S: drops to open -->
+      <g id="jaw">
+        <rect x="66" y="96" width="68" height="17" rx="3" fill="#3A3833"/>
+        <rect x="66" y="96" width="68" height="3"  rx="1" fill="#55514A"/>
+      </g>
+
+      <!-- Neck post down to the deck -->
+      <rect x="92" y="120" width="16" height="30" fill="#3A3833"/>
+
+      <!-- Wiring loom up to the head -->
+      <path d="M 118 152 C 118 138 104 140 102 126" stroke="#C0392B" stroke-width="2.5" fill="none"/>
+      <path d="M 126 152 C 128 136 112 138 108 124" stroke="#E4581B" stroke-width="2.5" fill="none"/>
+      <path d="M 110 152 C 106 140 96 142 96 126" stroke="#6E6B63" stroke-width="2.5" fill="none"/>
+
+      <!-- Speaker -->
+      <circle cx="58" cy="176" r="24" fill="#3E3C37"/>
+      <circle cx="58" cy="176" r="17" fill="none" stroke="#56534C" stroke-width="1.5"/>
+      <circle cx="58" cy="176" r="10" fill="none" stroke="#56534C" stroke-width="1.5"/>
+      <circle cx="58" cy="176" r="4"  fill="#56534C"/>
+
+      <!-- Teensy + amp on a board, pin headers along the edges -->
+      <rect x="96" y="152" width="66" height="48" rx="2" fill="#2F5D45"/>
+      <rect x="104" y="160" width="34" height="16" rx="1" fill="#1E1D1A"/>
+      <rect x="142" y="162" width="14" height="11" rx="1" fill="#1E1D1A"/>
+      <g fill="#C9A227">
+        <rect x="99"  y="155" width="3" height="3"/><rect x="105" y="155" width="3" height="3"/>
+        <rect x="111" y="155" width="3" height="3"/><rect x="117" y="155" width="3" height="3"/>
+        <rect x="123" y="155" width="3" height="3"/><rect x="129" y="155" width="3" height="3"/>
+        <rect x="99"  y="194" width="3" height="3"/><rect x="105" y="194" width="3" height="3"/>
+        <rect x="111" y="194" width="3" height="3"/><rect x="117" y="194" width="3" height="3"/>
+        <rect x="123" y="194" width="3" height="3"/><rect x="129" y="194" width="3" height="3"/>
+      </g>
+      <circle cx="152" cy="192" r="3" fill="#E4581B"/>
     </svg>
     <span id="syllable">&nbsp;</span>
   </div>
@@ -176,8 +226,17 @@ const FACE={
  browWander:1.1, browAsym:0.3,   // per-brow, and the chance one lifts alone
  browWanderMin:900, browWanderMax:3200, browWanderEase:0.05,
  browMax:8.5                     // lift + wander together, or the brow leaves the head:
-                                 // the curve's control point is 6 units above its ends,
-                                 // and the face frame starts at y=8.
+                                 // the curve's control point is 8 units above its ends,
+                                 // and the frame's top bar sits at y=8.
+};
+/* Where the parts live in the new 200x250 viewBox. The face is drawn as the
+   machine it will be: eyeballs in cowls on an open frame, a hinged jaw on the
+   MG90S, brow arms above, electronics on the deck below. */
+const RIG={
+ eyeCX:[68,132], eyeCY:66, eyeR:24, pupilR:10,
+ browEndY:30, browCtrlY:22,
+ browL:[46,70,94], browR:[106,130,154],
+ jawDrop:17                      // how far the jaw plate travels when wide open
 };
 
 let ctx=null, master=null, voices=[], timers=[], singing=false;
@@ -220,9 +279,14 @@ function boot(){
  applyVowel();
  $("power").textContent="Audio running";
  $("led").classList.add("on");
- requestAnimationFrame(tick);
  initMIDI();
 }
+
+/* The face animates from page load, NOT from boot(). Nothing in tick() touches
+   the audio context, and a robot that sits perfectly still until you press a
+   button reads as broken rather than idle — which is exactly how it read. */
+let faceRunning=false;
+function startFace(){ if(faceRunning) return; faceRunning=true; requestAnimationFrame(tick); }
 
 function applyVowel(){
  const pos=Math.max(0,Math.min(4,vowelPos));
@@ -267,11 +331,11 @@ function allOff(){ voices.forEach((_,i)=>voiceOff(i)); }
 function tick(){
  const now=performance.now();
 
- /* ---- mouth: eased, and narrowed by closed vowels ---- */
+ /* ---- jaw: the plate drops, revealing the cavity behind it ---- */
  const vowelOpen=1-0.35*Math.abs(vowelPos-2)/2;
  const target=jawT*vowelOpen;
  jawA+=(target-jawA)*(target>jawA?JAW.openRate:JAW.closeRate);
- $("mouth").setAttribute("ry",(2.5+22*jawA).toFixed(1));
+ $("jaw").setAttribute("transform","translate(0,"+(jawA*RIG.jawDrop).toFixed(2)+")");
 
  /* ---- gaze: hold, then flick somewhere new. Singing looks around more. ---- */
  if(now>=nextSaccade){
@@ -298,14 +362,15 @@ function tick(){
  }
  const open=Math.max(0.05,lid);
 
- $("eyeL").setAttribute("ry",(22*open).toFixed(2));
- $("eyeR").setAttribute("ry",(22*open).toFixed(2));
- $("pupilL").setAttribute("cx",(70+gazeXA+drift).toFixed(2));
- $("pupilR").setAttribute("cx",(130+gazeXA+drift).toFixed(2));
- $("pupilL").setAttribute("cy",(50+gazeYA).toFixed(2));
- $("pupilR").setAttribute("cy",(50+gazeYA).toFixed(2));
- $("pupilL").setAttribute("ry",(9*open).toFixed(2));
- $("pupilR").setAttribute("ry",(9*open).toFixed(2));
+ /* Each eye gets a slightly different aim. Real eyes are never perfectly
+    parallel, and two pupils moving in lockstep is the tell. */
+ for(let i=0;i<2;i++){
+  const id=i?"R":"L", skew=i?-0.35:0.35;
+  $("eye"+id).setAttribute("ry",(RIG.eyeR*open).toFixed(2));
+  $("pupil"+id).setAttribute("cx",(RIG.eyeCX[i]+gazeXA+drift+skew*gazeXA*0.25).toFixed(2));
+  $("pupil"+id).setAttribute("cy",(RIG.eyeCY+gazeYA).toFixed(2));
+  $("pupil"+id).setAttribute("ry",(RIG.pupilR*open).toFixed(2));
+ }
 
  /* ---- brows: velocity lift, plus an independent wander per side ---- */
  if(now>=nextBrowWander){
@@ -320,9 +385,11 @@ function tick(){
  browA+=(((singing||anyOn)?(BROW.base+BROW.vel*browV):0)-browA)*BROW.rate;
  const idle=(singing||anyOn)?1:0.45;   // a resting face still moves, just less
  const cap=v=>Math.min(FACE.browMax,v);
- const bl=cap(browA+browOffLA*idle), br=cap(browA+browOffRA*idle);
- $("browL").setAttribute("d","M 52 "+(24-bl).toFixed(2)+" Q 70 "+(18-bl).toFixed(2)+" 88 "+(24-bl).toFixed(2));
- $("browR").setAttribute("d","M 112 "+(24-br).toFixed(2)+" Q 130 "+(18-br).toFixed(2)+" 148 "+(24-br).toFixed(2));
+ const lift=[cap(browA+browOffLA*idle), cap(browA+browOffRA*idle)];
+ [["browL",RIG.browL],["browR",RIG.browR]].forEach(([id,x],i)=>{
+  const e=(RIG.browEndY-lift[i]).toFixed(2), c=(RIG.browCtrlY-lift[i]).toFixed(2);
+  $(id).setAttribute("d","M "+x[0]+" "+e+" Q "+x[1]+" "+c+" "+x[2]+" "+e);
+ });
 
  requestAnimationFrame(tick);
 }
@@ -571,6 +638,7 @@ function recDownload(song){
 }
 $("recBtn").addEventListener("click",recToggle);
 
+startFace();
 $("power").addEventListener("click",boot);
 $("playAG").addEventListener("click",()=>playSong(AMAZING_GRACE));
 $("playOJ").addEventListener("click",()=>playSong(ODE_TO_JOY));
