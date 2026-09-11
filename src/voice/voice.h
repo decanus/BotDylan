@@ -27,7 +27,12 @@ class Voice {
   void noteOff(int note);
   void allNotesOff();
 
-  void setVowel(float vowelPos);     // the choir shares one vowel position
+  // The choir shares one vowel position. Normally the move is smoothed over
+  // VOWEL_SMOOTH_MS; `immediate` snaps, which is only for start-up.
+  void setVowel(float vowelPos, bool immediate = false);
+
+  // Control-rate tick: advances the vowel and pitch smoothing one step.
+  void update();
   void setBreath(float level);
   void setPitchBend(float semis);
   void setVibratoRate(float sopranoHz);   // scaled by this voice's ratio
@@ -53,12 +58,18 @@ class Voice {
   AudioConnection cMixToEnv, cEnvToOut;
 
  private:
+  void writeFormants();
   void startNote(int note, int velocity);
   void releaseOrFall();
   void updatePitch();
 
   const VoiceDef &def_;
   int   currentNote_;
+  // Smoothing state: cur_ chases tgt_ one control step at a time.
+  float curFreq_[3], tgtFreq_[3];
+  float curGain_[3], tgtGain_[3];
+  float curPitch_, tgtPitch_;
+  float vowelAlpha_, pitchAlpha_;
   float noteVelocity_;
   float bendSemis_;
   int   noteStack_[NOTE_STACK_SIZE];   // last-note priority / legato

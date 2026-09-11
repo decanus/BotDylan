@@ -31,7 +31,11 @@ Voice::Voice(const VoiceDef &def, AudioStream &breathSrc,
       currentNote_(-1),
       noteVelocity_(0.0f),
       bendSemis_(0.0f),
-      noteStackLen_(0) {}
+      noteStackLen_(0),
+      curPitch_(INITIAL_PITCH_HZ),
+      tgtPitch_(INITIAL_PITCH_HZ),
+      vowelAlpha_(1.0f),
+      pitchAlpha_(1.0f) {}
 
 void Voice::begin() {
   glottis.begin(WAVEFORM_BANDLIMIT_SAWTOOTH);
@@ -48,7 +52,14 @@ void Voice::begin() {
   formant1.resonance(FORMANT_Q1);
   formant2.resonance(FORMANT_Q2);
   formant3.resonance(FORMANT_Q3);
-  setVowel(VOWEL_START);
+
+  // One-pole coefficients for a CONTROL_INTERVAL_MS tick. Computed once here
+  // rather than per tick: expf() in the control loop would be wasteful.
+  vowelAlpha_ = 1.0f - expf(-(float)CONTROL_INTERVAL_MS / VOWEL_SMOOTH_MS);
+  pitchAlpha_ = 1.0f - expf(-(float)CONTROL_INTERVAL_MS / PORTAMENTO_MS);
+
+  glottis.frequency(curPitch_);
+  setVowel(VOWEL_START, true);   // snap, so the first note starts in place
 
   env.attack(ENV_ATTACK_MS);
   env.decay(ENV_DECAY_MS);
@@ -57,12 +68,35 @@ void Voice::begin() {
 }
 
 // ===== SYNTHESIS ===========================================================
-void Voice::setVowel(float vowelPos) {
+void Voice::setVowel(float vowelPos, bool immediate) {
   FormantTargets t;
   formantTargetsFor(vowelPos, def_.formantScale, t);
-  formant1.frequency(t.freq[0]); formantMix.gain(0, t.gain[0]);
-  formant2.frequency(t.freq[1]); formantMix.gain(1, t.gain[1]);
-  formant3.frequency(t.freq[2]); formantMix.gain(2, t.gain[2]);
+  for (int k = 0; k < 3; k++) {
+    tgtFreq_[k] = t.freq[k];
+    tgtGain_[k] = t.gain[k];
+    if (immediate) { curFreq_[k] = t.freq[k]; curGain_[k] = t.gain[k]; }
+  }
+  if (immediate) writeFormants();
+}
+
+// Push the current (smoothed) formant state at the filters and the mixer.
+void Voice::writeFormants() {
+  formant1.frequency(curFreq_[0]); formantMix.gain(0, curGain_[0]);
+  formant2.frequency(curFreq_[1]); formantMix.gain(1, curGain_[1]);
+  formant3.frequency(curFreq_[2]); formantMix.gain(2, curGain_[2]);
+}
+
+// One control-rate step of the vowel and pitch smoothing. Cheap on purpose:
+// this runs at 200 Hz for every voice.
+void Voice::update() {
+  for (int k = 0; k < 3; k++) {
+    curFreq_[k] += (tgtFreq_[k] - curFreq_[k]) * vowelAlpha_;
+    curGain_[k] += (tgtGain_[k] - curGain_[k]) * vowelAlpha_;
+  }
+  writeFormants();
+
+  curPitch_ += (tgtPitch_ - curPitch_) * pitchAlpha_;
+  glottis.frequency(curPitch_);
 }
 
 void Voice::setBreath(float level) {
@@ -76,8 +110,11 @@ void Voice::setVibratoRate(float sopranoHz) {
 
 void Voice::updatePitch() {
   if (currentNote_ >= 0) {
-    glottis.frequency(midiToFreq((float)currentNote_ + bendSemis_
-                                 + def_.detuneCents / 100.0f));
+    // Target only — update() slides the oscillator there over PORTAMENTO_MS.
+    // A note after a rest still glides from the last note's pitch, which is
+    // what the simulator does and what makes phrases join up.
+    tgtPitch_ = midiToFreq((float)currentNote_ + bendSemis_
+                           + def_.detuneCents / 100.0f);
   }
 }
 

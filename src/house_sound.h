@@ -29,14 +29,14 @@ struct VoiceDef {
 //              name       vibrato  detune  formant  mix
 //                              Hz    cents    scale  level
 const VoiceDef VOICE_DEFS[] = {
-  { "soprano",     5.2f,   0.0f,   1.00f, 0.42f },
+  { "soprano",     5.0f,   0.0f,   1.00f, 0.42f },
   { "alto",        4.6f,  +4.0f,   0.93f, 0.30f },
   { "bass",        4.3f,  -3.0f,   0.82f, 0.34f },
 };
 const int VOICE_COUNT = sizeof(VOICE_DEFS) / sizeof(VOICE_DEFS[0]);
 
 // ===== GLOTTAL SOURCE ======================================================
-const float GLOTTIS_AMP_BASE   = 0.25f;  // amplitude at velocity 0
+const float GLOTTIS_AMP_BASE   = 0.22f;  // amplitude at velocity 0
 const float GLOTTIS_AMP_SCALE  = 0.5f;   // ...plus this much at velocity 127
 const float SOURCE_GLOTTIS_GAIN = 0.85f; // glottis level into the source mixer
 
@@ -44,15 +44,17 @@ const float SOURCE_GLOTTIS_GAIN = 0.85f; // glottis level into the source mixer
 // Depth is proportional, not absolute: frequencyModulation() is in octaves,
 // so the vibrato is a constant width in CENTS across the whole range. A fixed
 // Hz deviation would make low notes wobble far wider than high ones.
-const float VIBRATO_HZ        = 5.2f;
 const float VIBRATO_LFO_AMP   = 0.35f;
 const float VIBRATO_FM_OCTAVES = 0.12f;
 
 // ===== BREATH ==============================================================
+// Breath is OFF by default now: the constant noise bed made the tone muddier,
+// and removing it was one of the clearest wins of the session. CC2 still
+// sweeps it in from silence for anyone who wants the air back.
 const float BREATH_SOURCE_AMP = 1.0f;   // the noise generator's own level
-const float BREATH_DEFAULT  = 0.06f;    // ...and how much of it each voice takes
-const float BREATH_CC_BASE  = 0.02f;
-const float BREATH_CC_SPAN  = 0.25f;
+const float BREATH_DEFAULT  = 0.0f;     // ...and how much of it each voice takes
+const float BREATH_CC_BASE  = 0.0f;
+const float BREATH_CC_SPAN  = 0.27f;
 
 // ===== FORMANT FILTERS =====================================================
 // F1 is left broader than F2/F3 — see NOTES.md.
@@ -67,11 +69,30 @@ const float ENV_SUSTAIN    = 0.85f;
 const int   ENV_RELEASE_MS = 260;
 
 // ===== JAW MOTION ==========================================================
-const float JAW_OPEN_RATE    = 0.30f;   // fast open, slow close
-const float JAW_CLOSE_RATE   = 0.12f;
+const float JAW_OPEN_RATE    = 0.28f;   // fast open, slow close
+const float JAW_CLOSE_RATE   = 0.11f;
 const float JAW_VEL_BASE     = 0.35f;   // openness at velocity 0
 const float JAW_VEL_SCALE    = 0.65f;   // ...plus this much at velocity 127
 const float JAW_VOWEL_NARROW = 0.35f;   // how far closed vowels close the mouth
+
+// ===== ARTICULATION ========================================================
+// Vowels and pitch are smoothed with a one-pole filter at the control rate,
+// matching setTargetAtTime() in the simulator: these are TIME CONSTANTS, not
+// ramp durations, so the value gets ~63% of the way there in this long.
+const float VOWEL_SMOOTH_MS = 35.0f;
+const float PORTAMENTO_MS   = 25.0f;
+const float INITIAL_PITCH_HZ = 200.0f;   // so the first note does not swoop up from 0
+
+// A glide starts the vowel somewhere else and lets the smoothing carry it to
+// the note's real vowel. This is the whole articulation system: no consonant
+// noise, just formant motion. See NOTES.md on why noise was rejected.
+const int   GLIDE_MS      = 110;
+const float GLIDE_START_W = 0.0f;   // "oo"
+const float GLIDE_START_L = 1.2f;   // just past "oh"
+
+// CC4 sweeps the soprano 2..9 Hz; the other voices keep their ratio to it.
+const float VIBRATO_CC_MIN  = 2.0f;
+const float VIBRATO_CC_SPAN = 7.0f;
 
 // ===== CONTROL / MIDI ======================================================
 const int   CONTROL_INTERVAL_MS = 5;    // 200 Hz control rate

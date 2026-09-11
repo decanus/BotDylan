@@ -13,12 +13,17 @@
 
 void choirBegin();
 
+// Control-rate tick (200 Hz): advances glide timing and per-voice smoothing.
+void choirUpdate();
+
 void choirNoteOn(int channel, int note, int velocity);
 void choirNoteOff(int channel, int note);
 void choirAllNotesOff();
 
 void choirSetVowelCC(int value);
 void choirSetBreathCC(int value);
+void choirSetGlideCC(int value);         // latched, consumed by the next note-on
+void choirSetVibratoRateCC(int value);
 void choirSetPitchBend(int channel, int bend);
 
 float choirVowelPos();

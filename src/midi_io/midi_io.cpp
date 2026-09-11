@@ -44,6 +44,12 @@ static void onControlChange(byte ch, byte cc, byte val) {
     case 2:                                         // breath / air
       choirSetBreathCC(val);
       break;
+    case 3:                                         // glide onset, per note
+      choirSetGlideCC(val);
+      break;
+    case 4:                                         // vibrato rate
+      choirSetVibratoRateCC(val);
+      break;
     case 123:                                       // all notes off
       choirAllNotesOff();
       break;

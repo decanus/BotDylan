@@ -10,13 +10,27 @@
 #include "voice/choir.h"
 #include "voice/formant_math.h"
 
-static float vowelPos = VOWEL_START;
+// vowelTarget is where CC1 says the vowel should be. vowelPos is where it is
+// being commanded right now — during a glide those differ, and the one-pole
+// smoothing in each Voice does the actual travelling.
+static float vowelTarget = VOWEL_START;
+static float vowelPos    = VOWEL_START;
+
+// CC3 latches a glide for the NEXT note-on, then clears.
+enum GlideKind { GLIDE_NONE = 0, GLIDE_W, GLIDE_L };
+static GlideKind pendingGlide = GLIDE_NONE;
+static bool          glideActive = false;
+static elapsedMillis glideTimer;
 
 // MIDI channels are 1-based here (both usbMIDI and the MIDI library hand
 // them over that way). Out-of-range channels sing soprano.
 static int voiceForChannel(int channel) {
   int idx = channel - 1;
   return (idx >= 0 && idx < VOICE_COUNT) ? idx : 0;
+}
+
+static void pushVowel() {
+  for (int i = 0; i < VOICE_COUNT; i++) VOICES[i]->setVowel(vowelPos);
 }
 
 static bool anySounding() {
@@ -38,6 +52,17 @@ void choirBegin() {
 void choirNoteOn(int channel, int note, int velocity) {
   if (velocity == 0) { choirNoteOff(channel, note); return; }
   int idx = voiceForChannel(channel);
+
+  // Articulation: start the vowel somewhere else and let it travel. The whole
+  // choir glides together, because the choir sings one syllable.
+  if (pendingGlide != GLIDE_NONE) {
+    vowelPos = (pendingGlide == GLIDE_W) ? GLIDE_START_W : GLIDE_START_L;
+    pushVowel();
+    glideActive = true;
+    glideTimer  = 0;
+    pendingGlide = GLIDE_NONE;          // latched for one note only
+  }
+
   VOICES[idx]->noteOn(note, velocity);
 
   // The jaw follows the soprano; the lower voices only open it off its rest.
@@ -55,12 +80,35 @@ void choirNoteOff(int channel, int note) {
 
 void choirAllNotesOff() {
   for (int i = 0; i < VOICE_COUNT; i++) VOICES[i]->allNotesOff();
+  pendingGlide = GLIDE_NONE;
+  glideActive  = false;
   jawSetTarget(0.0f);
 }
 
 void choirSetVowelCC(int value) {
-  vowelPos = (value / 127.0f) * (NUM_VOWELS - 1);
-  for (int i = 0; i < VOICE_COUNT; i++) VOICES[i]->setVowel(vowelPos);
+  vowelTarget = (value / 127.0f) * (NUM_VOWELS - 1);
+  if (!glideActive) {                   // a glide owns the vowel until it lands
+    vowelPos = vowelTarget;
+    pushVowel();
+  }
+}
+
+void choirSetGlideCC(int value) {
+  pendingGlide = (value == 0) ? GLIDE_NONE : (value < 64 ? GLIDE_W : GLIDE_L);
+}
+
+void choirSetVibratoRateCC(int value) {
+  float hz = VIBRATO_CC_MIN + (value / 127.0f) * VIBRATO_CC_SPAN;
+  for (int i = 0; i < VOICE_COUNT; i++) VOICES[i]->setVibratoRate(hz);
+}
+
+void choirUpdate() {
+  if (glideActive && glideTimer >= (unsigned)GLIDE_MS) {
+    glideActive = false;
+    vowelPos    = vowelTarget;          // release it toward the note's vowel
+    pushVowel();
+  }
+  for (int i = 0; i < VOICE_COUNT; i++) VOICES[i]->update();
 }
 
 void choirSetBreathCC(int value) {

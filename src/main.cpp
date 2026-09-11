@@ -87,6 +87,7 @@ void loop() {
   // 200 Hz control rate: ease jaw toward target; vowel affects mouth shape
   if (controlTimer >= CONTROL_INTERVAL_MS) {
     controlTimer = 0;
+    choirUpdate();
     jawUpdate(choirVowelPos());
   }
 

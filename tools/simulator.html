@@ -118,7 +118,16 @@ const VDEF=[
  {vib:5.0, det:0,  fshift:1.00, vol:0.42},   // soprano
  {vib:4.6, det:4,  fshift:0.93, vol:0.30},   // alto
  {vib:4.3, det:-3, fshift:0.82, vol:0.34}];  // bass
-const ENV={attackTc:0.05, releaseTc:0.24, glideMs:110, portamentoTc:0.025, vowelTc:0.035};
+/* Envelope mirrors the firmware's AudioEffectEnvelope: a linear ADSR, not a
+   one-pole approach. Times in ms, sustain 0..1. */
+const ENV={attackMs:45, decayMs:120, sustain:0.85, releaseMs:260,
+           glideMs:110, portamentoTc:0.025, vowelTc:0.035};
+/* Vibrato depth is PROPORTIONAL (cents), not a fixed Hz deviation, so the
+   wobble is the same musical width at every pitch — a fixed Hz swing makes low
+   notes wobble far wider than high ones. The firmware gets this from
+   frequencyModulation(0.12 octaves) at LFO amplitude 0.35 = 0.042 oct =
+   50.4 cents, which is depth 45 on the slider below. */
+const VIBRATO_MAX_CENTS=112;
 const JAW={openRate:0.28, closeRate:0.11};
 
 let ctx=null, master=null, voices=[], timers=[], singing=false;
@@ -134,8 +143,8 @@ function makeVoice(def){
  v.osc=ctx.createOscillator(); v.osc.type="sawtooth"; v.osc.frequency.value=200;
  v.osc.detune.value=def.det;
  v.vib=ctx.createOscillator(); v.vib.type="sine"; v.vib.frequency.value=def.vib;
- v.vibG=ctx.createGain(); v.vibG.gain.value=4.5;
- v.vib.connect(v.vibG); v.vibG.connect(v.osc.frequency);
+ v.vibG=ctx.createGain(); v.vibG.gain.value=(45/100)*VIBRATO_MAX_CENTS;
+ v.vib.connect(v.vibG); v.vibG.connect(v.osc.detune);   // cents, so it scales with pitch
  v.f=[]; v.fg=[];
  for(let k=0;k<3;k++){
   const bp=ctx.createBiquadFilter(); bp.type="bandpass"; bp.Q.value=k===0?4:5;
@@ -183,13 +192,17 @@ function voiceOn(idx,note,vel){
  vc.osc.frequency.cancelScheduledValues(ctx.currentTime);
  vc.osc.frequency.setTargetAtTime(mtof(note+vc.bend),ctx.currentTime,ENV.portamentoTc);
  vc.note=note;
- vc.env.gain.cancelScheduledValues(ctx.currentTime);
- vc.env.gain.setTargetAtTime(0.22+0.5*v,ctx.currentTime,ENV.attackTc);
+ const peak=0.22+0.5*v, g=vc.env.gain, t0=ctx.currentTime;
+ g.cancelScheduledValues(t0); g.setValueAtTime(g.value,t0);
+ g.linearRampToValueAtTime(peak,t0+ENV.attackMs/1000);
+ g.linearRampToValueAtTime(peak*ENV.sustain,t0+(ENV.attackMs+ENV.decayMs)/1000);
  if(idx===0) jawT=0.35+0.65*v; else if(jawT===0) jawT=0.45;
 }
 function voiceOff(idx){
  const vc=voices[idx]; if(!vc) return;
- vc.env.gain.setTargetAtTime(0,ctx.currentTime,ENV.releaseTc);
+ const g=vc.env.gain, t0=ctx.currentTime;
+ g.cancelScheduledValues(t0); g.setValueAtTime(g.value,t0);
+ g.linearRampToValueAtTime(0,t0+ENV.releaseMs/1000);
  vc.note=undefined;
  if(!voices.some(v=>v.note!==undefined)){ anyOn=false; jawT=0; }
 }
@@ -323,7 +336,7 @@ $("vowel").addEventListener("input",e=>{ vowelPos=(e.target.value/127)*4; if(ctx
 $("vibRate").addEventListener("input",e=>setVibRate(e.target.value/10));
 $("vibDepth").addEventListener("input",e=>{
  $("depthOut").textContent=e.target.value;
- if(ctx)voices.forEach(v=>v.vibG.gain.setTargetAtTime((e.target.value/100)*10,ctx.currentTime,0.05));
+ if(ctx)voices.forEach(v=>v.vibG.gain.setTargetAtTime((e.target.value/100)*VIBRATO_MAX_CENTS,ctx.currentTime,0.05));
 });
 $("master").addEventListener("input",e=>{
  $("masterOut").textContent=e.target.value;
