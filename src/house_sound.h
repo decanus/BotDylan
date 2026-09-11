@@ -122,6 +122,29 @@ const float BROW_SMOOTH_MS  = 200.0f;
 const float BROW_VEL_BASE   = 0.5f;   // raised this much at velocity 0
 const float BROW_VEL_SCALE  = 0.5f;   // ...plus this much at velocity 127
 
+// ===== BLINK ===============================================================
+// Mirrors FACE.blink* in the simulator. Two things make this the odd one out
+// in face/, and both are deliberate:
+//
+//   It SNAPS. Everything else here eases toward a target. A blink is a gesture
+//   with a start and an end, so it is a one-shot envelope over elapsed time:
+//   shut in the first 40%, open over the remaining 60%. An eased blink reads
+//   as sleepy rather than alive.
+//
+//   It runs on the CLOCK, not on the sound. Nothing sets a target. A face that
+//   only moves while it sings looks switched off between songs, and blinking is
+//   the cheapest thing that separates "waiting" from "dead".
+//
+// The gap is randomised, and a blink occasionally doubles, because a face that
+// repeats exactly reads as a machine — the same reason the gaze saccades.
+const int   BLINK_MS            = 140;
+const float BLINK_CLOSE_FRAC    = 0.4f;   // shuts in this fraction, opens in the rest
+const int   BLINK_GAP_MIN_MS    = 1800;
+const int   BLINK_GAP_MAX_MS    = 6200;
+const float BLINK_DOUBLE_CHANCE = 0.18f;
+const int   BLINK_DOUBLE_GAP_MS = 90;
+const float BLINK_MIN_OPEN      = 0.05f;  // never quite shut; a sliver stays
+
 // ===== AUDIO ENGINE ========================================================
 // Blocks for the Audio Library. Each voice is waveform + LFO + 3 filters +
 // 2 mixers + envelope, so this has to grow with the choir. Watch

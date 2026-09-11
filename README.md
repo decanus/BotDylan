@@ -21,6 +21,8 @@ all sing through it without repatching.
 - **Teensy 4.1** (Arduino framework, Teensy Audio Library)
 - Audio out via **MQS on pin 12** → PAM8403 amp → 4–8 Ω speaker
 - **MG90S jaw servo** on pin 3, on its own 5 V supply
+- **MG90S brow servo** on pin 4 and **lid servo** on pin 5 — both reserved in
+  `config.h` and inert until a servo is actually wired
 - **H11L1 optocoupler** for DIN/TRS MIDI in on pin 0 (RX1)
 
 A Teensy 4.0 works too: set `ENABLE_USB_HOST 0` in `src/config.h` and
@@ -46,6 +48,8 @@ A Teensy 4.0 works too: set `ENABLE_USB_HOST 0` in `src/config.h` and
    VIN (5V)     ──────→ PAM8403 5V    ───→ └─────────┘
 
    pin 3        ──────→ MG90S jaw servo signal
+   pin 4        ──────→ MG90S brow servo signal   (reserved)
+   pin 5        ──────→ MG90S lid servo signal    (reserved)
    SEPARATE 5V  ──────→ MG90S V+          ← do not run the servo off the Teensy
    GND ───────────────→ MG90S GND         ← tie all grounds together
 
@@ -139,9 +143,15 @@ clock, because a face that repeats exactly reads as a machine — the pupils use
 to track a sine wave and looked like a searchlight. The jaw and the brow lift
 stay tied to the notes; everything else is deliberately irregular.
 
-Eyes and blinking exist in the simulator only for now. The firmware has jaw and
-brow; when the head gets eyes (a second servo, or the round displays on the
-roadmap) this table is the spec to port.
+**Blinking is ported.** `src/face/blink.*` mirrors the simulator's envelope,
+doubled blink and all, and reserves a lid servo on pin 5 the way the brows
+reserve pin 4. It is the one part of the face that is not tied to the sound:
+nothing sets a target, the module owns its own timer, and `main.cpp` only tells
+it another control tick passed. `blinkOpenness()` is also the value to drive
+round eye displays with, if the head ends up with those instead of servos.
+
+Gaze is still simulator-only. When the eyes get an actuator this table is the
+spec to port.
 
 ## The parity rule
 
@@ -318,6 +328,8 @@ src/
     presets/warm.h      the default vowel formant table
   face/
     jaw.{h,cpp}         eased servo motion model
+    brow.{h,cpp}        the eyebrows, same shape as the jaw
+    blink.{h,cpp}       the eyelids, on their own timer
   midi_io/
     midi_io.{h,cpp}     three inputs, one MIDI map
 songs/                  song JSON (see above)

@@ -27,6 +27,8 @@
  * Audio out : MQS pin 12 -> PAM8403 amp "L" in, amp GND -> GND,
  *             amp 5V -> VIN. Amp out -> 4-8 ohm 2-3W speaker.
  * Jaw servo : signal -> pin 3, SEPARATE 5V supply, grounds tied together.
+ * Face servos: brows -> pin 4, lids -> pin 5, same separate 5V supply.
+ *             Both are reserved in config.h and off until a servo is wired.
  *
  * PLAYING IT
  * ----------
@@ -51,6 +53,7 @@
  *   voice/presets/      vowel formant tables — the tuning data
  *   face/jaw            eased servo motion model
  *   face/brow           eased brow motion model (pin reserved)
+ *   face/blink          lid envelope on its own timer (pin reserved)
  *   midi_io/            the three inputs + the MIDI map
  *
  * Under PlatformIO the Arduino IDE's Tools > USB Type > "Serial + MIDI" is
@@ -61,6 +64,7 @@
 #include <Audio.h>   // AudioProcessorUsage / AudioMemoryUsage
 
 #include "config.h"
+#include "face/blink.h"
 #include "face/brow.h"
 #include "face/jaw.h"
 #include "house_sound.h"
@@ -80,6 +84,7 @@ void setup() {
   choirBegin();   // audio memory, then every singer's nodes
   jawBegin();     // servo to its closed position
   browBegin();    // brow motion model (pin reserved, see config.h)
+  blinkBegin();   // lids start their own timer; nothing drives them
   midiBegin();    // USB device, DIN/TRS serial, USB host
 }
 
@@ -93,6 +98,7 @@ void loop() {
     choirUpdate();
     jawUpdate(choirVowelPos());
     browUpdate();
+    blinkUpdate();   // owns its timing — not tied to the voice
   }
 
 #if ENABLE_PERF_REPORT

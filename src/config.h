@@ -35,6 +35,20 @@ const int BROW_PIN      = 4;
 const int BROW_DOWN_DEG = 80;   // trim these two to your linkage
 const int BROW_UP_DEG   = 62;
 
+// ===== LID ACTUATOR (reserved) =============================================
+// Blinking, ported from the simulator. One micro servo drives both lids off a
+// shared shaft, the way the brows share one linkage. Reserved on the same
+// terms as the brows: the motion model runs whether or not a servo is
+// attached, so wiring one later is a one-line change.
+//
+// The blink is the fastest thing the face does — it shuts in 56 ms (40% of
+// BLINK_MS) — and an MG90S is specified around 100 ms per 60 degrees. If the
+// lid cannot keep up, lengthen BLINK_MS rather than fighting the servo.
+#define ENABLE_LID_SERVO 0
+const int LID_PIN      = 5;
+const int LID_OPEN_DEG = 20;   // trim these two to your linkage
+const int LID_SHUT_DEG = 105;
+
 // ===== DIAGNOSTICS =========================================================
 // Prints audio CPU and memory headroom over USB serial every couple of
 // seconds, but only when a host is actually listening. Costs nothing when 0.
