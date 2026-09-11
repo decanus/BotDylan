@@ -17,7 +17,8 @@ import subprocess
 import sys
 import tempfile
 
-FIELDS = ["sop", "alto", "bass", "beats", "vowelCC", "syllable", "velocity", "glide"]
+FIELDS = ["sop", "alto", "bass", "beats", "vowelCC", "syllable", "velocity", "glide",
+          "onset", "coda"]
 TOOLS = pathlib.Path(__file__).resolve().parent
 ROOT = TOOLS.parent
 
@@ -47,7 +48,10 @@ def compare(original, returned, label, failures):
     shown = 0
     bad_rows = 0
     for i, (x, y) in enumerate(zip(a, b)):
-        diffs = [(f, x.get(f), y.get(f)) for f in FIELDS if x.get(f) != y.get(f)]
+        # onset/coda are optional; absent and "" are the same thing
+        norm = lambda v, f: (v or "") if f in ("onset", "coda") else v
+        diffs = [(f, x.get(f), y.get(f)) for f in FIELDS
+                 if norm(x.get(f), f) != norm(y.get(f), f)]
         if not diffs:
             continue
         bad_rows += 1

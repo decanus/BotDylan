@@ -69,6 +69,13 @@ def meta_name(text):
     return b"\xff\x03" + vlq(len(raw)) + raw
 
 
+def meta_text(text):
+    """FF 01 — carries the vocoder's onset/coda codes, which have no natural
+    home in MIDI. Without this the round trip would quietly drop them."""
+    raw = text.encode("ascii", "replace")
+    return b"\xff\x01" + vlq(len(raw)) + raw
+
+
 def meta_lyric(text):
     """FF 05 — the syllable. Without this the round trip through MIDI loses
     the lyric entirely, since nothing else in the file carries it."""
@@ -94,6 +101,9 @@ def convert(song, ticks_per_quarter):
     for note in song["notes"]:
         if note.get("syllable"):
             meta.append((tick, 3, meta_lyric(note["syllable"])))
+        if note.get("onset") or note.get("coda"):
+            meta.append((tick, 4, meta_text(
+                "art:%s/%s" % (note.get("onset", ""), note.get("coda", "")))))
         tick += round(note["beats"] * ticks_per_quarter)
 
     tracks = [track(meta)]

@@ -3,7 +3,7 @@
   "meter": "3/4",
   "quarterMs": 560,
   "gapMs": 60,
-  "source": "extracted from tools/simulator.html - keep in parity",
+  "source": "extracted from tools/simulator.html - keep in parity. onset/coda consonant codes on the first 14 notes come from the vocoder reference script's MEL; the rest are pure vowel",
   "notes": [
     {
       "sop": 55,
@@ -13,7 +13,9 @@
       "vowelCC": 64,
       "syllable": "A",
       "velocity": 72,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 60,
@@ -23,7 +25,9 @@
       "vowelCC": 80,
       "syllable": "ma",
       "velocity": 84,
-      "glide": ""
+      "glide": "",
+      "onset": "m",
+      "coda": ""
     },
     {
       "sop": 64,
@@ -33,7 +37,9 @@
       "vowelCC": 120,
       "syllable": "zing",
       "velocity": 80,
-      "glide": ""
+      "glide": "",
+      "onset": "z",
+      "coda": "n"
     },
     {
       "sop": 64,
@@ -43,7 +49,9 @@
       "vowelCC": 96,
       "syllable": "grace",
       "velocity": 88,
-      "glide": "l"
+      "glide": "l",
+      "onset": "g",
+      "coda": "s"
     },
     {
       "sop": 62,
@@ -53,7 +61,9 @@
       "vowelCC": 64,
       "syllable": "how",
       "velocity": 78,
-      "glide": ""
+      "glide": "",
+      "onset": "h",
+      "coda": ""
     },
     {
       "sop": 60,
@@ -63,7 +73,9 @@
       "vowelCC": 127,
       "syllable": "sweet",
       "velocity": 84,
-      "glide": "w"
+      "glide": "w",
+      "onset": "s",
+      "coda": "t"
     },
     {
       "sop": 57,
@@ -73,7 +85,9 @@
       "vowelCC": 38,
       "syllable": "the",
       "velocity": 74,
-      "glide": ""
+      "glide": "",
+      "onset": "d",
+      "coda": ""
     },
     {
       "sop": 55,
@@ -83,7 +97,9 @@
       "vowelCC": 58,
       "syllable": "sound",
       "velocity": 78,
-      "glide": ""
+      "glide": "",
+      "onset": "s",
+      "coda": "n"
     },
     {
       "sop": 55,
@@ -93,7 +109,9 @@
       "vowelCC": 58,
       "syllable": "that",
       "velocity": 74,
-      "glide": ""
+      "glide": "",
+      "onset": "d",
+      "coda": "t"
     },
     {
       "sop": 60,
@@ -103,7 +121,9 @@
       "vowelCC": 96,
       "syllable": "saved",
       "velocity": 86,
-      "glide": ""
+      "glide": "",
+      "onset": "s",
+      "coda": "d"
     },
     {
       "sop": 64,
@@ -113,7 +133,9 @@
       "vowelCC": 32,
       "syllable": "a",
       "velocity": 76,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 64,
@@ -123,7 +145,9 @@
       "vowelCC": 96,
       "syllable": "wretch",
       "velocity": 88,
-      "glide": "l"
+      "glide": "l",
+      "onset": "r",
+      "coda": "ch"
     },
     {
       "sop": 62,
@@ -133,7 +157,9 @@
       "vowelCC": 70,
       "syllable": "like",
       "velocity": 80,
-      "glide": "l"
+      "glide": "l",
+      "onset": "l",
+      "coda": "k"
     },
     {
       "sop": 67,
@@ -143,7 +169,9 @@
       "vowelCC": 127,
       "syllable": "me",
       "velocity": 104,
-      "glide": ""
+      "glide": "",
+      "onset": "m",
+      "coda": ""
     },
     {
       "sop": 67,
@@ -153,7 +181,9 @@
       "vowelCC": 70,
       "syllable": "I",
       "velocity": 96,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 64,
@@ -163,7 +193,9 @@
       "vowelCC": 30,
       "syllable": "once",
       "velocity": 84,
-      "glide": "w"
+      "glide": "w",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 62,
@@ -173,7 +205,9 @@
       "vowelCC": 36,
       "syllable": "was",
       "velocity": 78,
-      "glide": "w"
+      "glide": "w",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 60,
@@ -183,7 +217,9 @@
       "vowelCC": 42,
       "syllable": "lost",
       "velocity": 80,
-      "glide": "l"
+      "glide": "l",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 57,
@@ -193,7 +229,9 @@
       "vowelCC": 34,
       "syllable": "but",
       "velocity": 72,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 60,
@@ -203,7 +241,9 @@
       "vowelCC": 64,
       "syllable": "now",
       "velocity": 82,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 62,
@@ -213,7 +253,9 @@
       "vowelCC": 70,
       "syllable": "am",
       "velocity": 84,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 64,
@@ -223,7 +265,9 @@
       "vowelCC": 60,
       "syllable": "found",
       "velocity": 92,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 64,
@@ -233,7 +277,9 @@
       "vowelCC": 36,
       "syllable": "was",
       "velocity": 78,
-      "glide": "w"
+      "glide": "w",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 60,
@@ -243,7 +289,9 @@
       "vowelCC": 74,
       "syllable": "blind",
       "velocity": 86,
-      "glide": "l"
+      "glide": "l",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 57,
@@ -253,7 +301,9 @@
       "vowelCC": 34,
       "syllable": "but",
       "velocity": 72,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 60,
@@ -263,7 +313,9 @@
       "vowelCC": 64,
       "syllable": "now",
       "velocity": 80,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 62,
@@ -273,7 +325,9 @@
       "vowelCC": 70,
       "syllable": "I",
       "velocity": 82,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 60,
@@ -283,7 +337,9 @@
       "vowelCC": 127,
       "syllable": "see",
       "velocity": 88,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     }
   ]
 }

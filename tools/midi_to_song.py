@@ -84,6 +84,10 @@ def parse_midi(path):
                     meter = f"{payload[0]}/{1 << payload[1]}"
                 elif mtype == 0x03 and title is None:
                     title = payload.decode("ascii", "replace")
+                elif mtype == 0x01:
+                    txt = payload.decode("ascii", "replace")
+                    if txt.startswith("art:"):
+                        events.append((tick, "art", txt[4:]))
                 elif mtype == 0x05:
                     events.append((tick, "lyric", payload.decode("ascii", "replace")))
                 continue
@@ -206,11 +210,14 @@ def convert(path, unit_beats, track_override, name):
     if not any(voice_notes.values()):
         raise SystemExit(f"{path}: no notes found")
 
-    lyrics = {}
+    lyrics, arts = {}, {}
     for tr in tracks:
         for e in tr:
             if e[1] == "lyric":
                 lyrics[e[0]] = e[2]
+            elif e[1] == "art":
+                on, _, co = e[2].partition("/")
+                arts[e[0]] = (on, co)
 
     ccs = {}                       # (channel, cc) -> [(tick, value)]
     for e in all_events:
@@ -273,6 +280,7 @@ def convert(path, unit_beats, track_override, name):
             "syllable": lyrics.get(t, ""),
             "velocity": vel,
             "glide": "" if not glide_cc else ("w" if glide_cc < 64 else "l"),
+            **(lambda a: {"onset": a[0], "coda": a[1]} if a else {})(arts.get(t)),
         })
         if nxt > sound:                             # a genuine rest
             rows.append({"sop": None, "alto": None, "bass": None,

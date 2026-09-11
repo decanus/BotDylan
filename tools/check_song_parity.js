@@ -49,8 +49,15 @@ for (const [file, sim] of PAIRS) {
   }
 
   json.notes.forEach((n, i) => {
-    const [s, a, b, beats, vowelCC, syllable, velocity, glide] = sim.notes[i];
+    const [s, a, b, beats, vowelCC, syllable, velocity, glide, onset, coda] = sim.notes[i];
     const want = { sop: s, alto: a, bass: b, beats, vowelCC, syllable, velocity, glide };
+    // onset/coda are optional (vocoder mode). Compare them only for songs that
+    // declare them, treating absent as "" on both sides.
+    if ("onset" in n || "coda" in n) {
+      want.onset = onset ?? "";
+      want.coda = coda ?? "";
+      n = { ...n, onset: n.onset ?? "", coda: n.coda ?? "" };
+    }
     for (const k of Object.keys(want)) {
       if (n[k] !== want[k]) {
         console.error(
