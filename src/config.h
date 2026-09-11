@@ -41,9 +41,10 @@ const int BROW_UP_DEG   = 62;
 // terms as the brows: the motion model runs whether or not a servo is
 // attached, so wiring one later is a one-line change.
 //
-// The blink is the fastest thing the face does — it shuts in 56 ms (40% of
-// BLINK_MS) — and an MG90S is specified around 100 ms per 60 degrees. If the
-// lid cannot keep up, lengthen BLINK_MS rather than fighting the servo.
+// The blink is the fastest thing the face does — it shuts in the first
+// BLINK_CLOSE_FRAC of BLINK_MS — and an MG90S is specified around 100 ms per
+// 60 degrees. If the lid cannot keep up, lengthen BLINK_MS rather than
+// fighting the servo.
 #define ENABLE_LID_SERVO 0
 const int LID_PIN      = 5;
 const int LID_OPEN_DEG = 20;   // trim these two to your linkage

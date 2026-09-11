@@ -3,8 +3,8 @@
  *
  * The odd one out in face/. The jaw and the brows are given a target by
  * whoever owns the sound, and ease toward it; the lids own their own timing
- * and nobody sets a target at all. That is the point: blinking is what makes
- * an idle robot look alive, so it cannot wait for a note.
+ * and nobody sets a target at all. The reasoning lives beside the constants
+ * in house_sound.h.
  *
  * Openness rather than lid position, so this reads the same way round as the
  * simulator it mirrors — see FACE.blink* in tools/simulator.html.
@@ -20,9 +20,6 @@ void blinkBegin();
 // themselves. Also the value to drive round eye displays with, if the head
 // ends up with those instead of servos.
 float blinkOpenness();
-
-// Blink once, now, interrupting the wait. For punctuating a phrase.
-void blinkNow();
 
 // Call at the control rate (200 Hz).
 void blinkUpdate();
