@@ -114,7 +114,8 @@ void loop() {
       Serial.print(AudioMemoryUsageMax());
       Serial.print(" of ");
       Serial.print(AUDIO_MEMORY_BLOCKS);
-      Serial.println(")");
+      Serial.print(")  mode ");
+      Serial.println(choirMode());
     }
   }
 #endif

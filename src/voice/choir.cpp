@@ -14,6 +14,9 @@
 // vowelTarget is where CC1 says the vowel should be. vowelPos is where it is
 // being commanded right now — during a glide those differ, and the one-pole
 // smoothing in each Voice does the actual travelling.
+static int mode = MODE_FORMANT;
+static int lyricCursor = 0;
+
 static float vowelTarget = VOWEL_START;
 static float vowelPos    = VOWEL_START;
 
@@ -41,6 +44,23 @@ static bool anySounding() {
   return false;
 }
 
+int choirMode() { return mode; }
+
+void choirResetLyric() { lyricCursor = 0; }
+
+void choirSetModeCC(int value) {
+  int next = (value < 64) ? MODE_FORMANT : MODE_VOCODER;
+  if (next == mode) return;
+  // Silence whichever engine is handing over, so a mode change never leaves a
+  // note hanging on the engine that just stopped being addressed.
+  for (int i = 0; i < VOICE_COUNT; i++) VOICES[i]->allNotesOff();
+  vocoder.allNotesOff();
+  jawSetTarget(0.0f);
+  browSetTarget(0.0f);
+  lyricCursor = 0;
+  mode = next;
+}
+
 void choirBegin() {
   AudioMemory(AUDIO_MEMORY_BLOCKS);
   breath.amplitude(BREATH_SOURCE_AMP);   // the shared bed every voice taps
@@ -48,10 +68,25 @@ void choirBegin() {
     VOICES[i]->begin();
     voiceMix.gain(i, VOICE_DEFS[i].level);
   }
+  vocoder.begin();
+  voiceMix.gain(3, VOCODER_LEVEL);
 }
 
 void choirNoteOn(int channel, int note, int velocity) {
   if (velocity == 0) { choirNoteOff(channel, note); return; }
+
+  if (mode == MODE_VOCODER) {
+    const VocEnvelope *e = &ag_index[lyricCursor % ag_count];
+    lyricCursor++;
+    // Duration is unknown at note-on from live MIDI, so the envelope is sized
+    // for a comfortable sung note and cut short by the note-off if it comes
+    // sooner. A sequencer that knows its own note lengths could do better.
+    vocoder.noteOn(note, velocity, e->syllable, 900.0f);
+    jawSetTarget(JAW_VEL_BASE + JAW_VEL_SCALE * (velocity / 127.0f));
+    browSetTarget(BROW_VEL_BASE + BROW_VEL_SCALE * (velocity / 127.0f));
+    return;
+  }
+
   int idx = voiceForChannel(channel);
 
   // Articulation: start the vowel somewhere else and let it travel. The whole
@@ -78,6 +113,12 @@ void choirNoteOn(int channel, int note, int velocity) {
 }
 
 void choirNoteOff(int channel, int note) {
+  if (mode == MODE_VOCODER) {
+    vocoder.noteOff();
+    jawSetTarget(0.0f);
+    browSetTarget(0.0f);
+    return;
+  }
   VOICES[voiceForChannel(channel)]->noteOff(note);
   if (!anySounding()) {
     jawSetTarget(0.0f);
@@ -86,6 +127,8 @@ void choirNoteOff(int channel, int note) {
 }
 
 void choirAllNotesOff() {
+  vocoder.allNotesOff();
+  lyricCursor = 0;
   for (int i = 0; i < VOICE_COUNT; i++) VOICES[i]->allNotesOff();
   pendingGlide = GLIDE_NONE;
   glideActive  = false;
@@ -111,6 +154,7 @@ void choirSetVibratoRateCC(int value) {
 }
 
 void choirUpdate() {
+  if (mode == MODE_VOCODER) { vocoder.update(); return; }
   if (glideActive && glideTimer >= (unsigned)GLIDE_MS) {
     glideActive = false;
     vowelPos    = vowelTarget;          // release it toward the note's vowel

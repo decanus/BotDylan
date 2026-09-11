@@ -122,8 +122,20 @@ const float BROW_SMOOTH_MS  = 200.0f;
 const float BROW_VEL_BASE   = 0.5f;   // raised this much at velocity 0
 const float BROW_VEL_SCALE  = 0.5f;   // ...plus this much at velocity 127
 
+// ===== VOICE MODES =========================================================
+// 1 = the formant choir (default, and what every song has been tuned on).
+// 2 = the 14-band stored-envelope vocoder: real pronunciation, still
+//     unmistakably a robot. Experimental. CC5 selects.
+const int MODE_FORMANT = 1;
+const int MODE_VOCODER = 2;
+const float VOCODER_LEVEL = 0.42f;   // its channel on the output mixer
+
 // ===== AUDIO ENGINE ========================================================
 // Blocks for the Audio Library. Each voice is waveform + LFO + 3 filters +
 // 2 mixers + envelope, so this has to grow with the choir. Watch
 // AudioMemoryUsageMax() after changing it.
-const int AUDIO_MEMORY_BLOCKS = 60;
+// Mode 2 adds 34 connections on top of the choir's, and every one of them can
+// hold a block in flight. 60 was sized for the choir alone. This figure is
+// still a calculation, not a measurement — read AudioMemoryUsageMax() off real
+// hardware and trim it.
+const int AUDIO_MEMORY_BLOCKS = 140;

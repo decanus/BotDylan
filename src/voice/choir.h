@@ -24,6 +24,14 @@ void choirSetVowelCC(int value);
 void choirSetBreathCC(int value);
 void choirSetGlideCC(int value);         // latched, consumed by the next note-on
 void choirSetVibratoRateCC(int value);
+void choirSetModeCC(int value);          // CC5: <64 formant, >=64 vocoder
+int  choirMode();
+
+// The vocoder needs a syllable per note, and live MIDI carries none. So the
+// lyric is a CURSOR: each note-on consumes the next syllable of the compiled
+// song, and all-notes-off rewinds it. Play the melody, the robot sings the
+// words in order.
+void choirResetLyric();
 void choirSetPitchBend(int channel, int bend);
 
 float choirVowelPos();

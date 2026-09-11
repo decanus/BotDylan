@@ -28,6 +28,10 @@ Voice voiceSoprano(VOICE_DEFS[0], breath, voiceMix, 0);
 Voice voiceAlto   (VOICE_DEFS[1], breath, voiceMix, 1);
 Voice voiceBass   (VOICE_DEFS[2], breath, voiceMix, 2);
 
+// Mode 2 takes the mixer's fourth channel, so it sits alongside the choir
+// rather than replacing it. Only one mode sounds at a time.
+VocoderVoice vocoder(voiceMix, 3);
+
 Voice *const VOICES[] = { &voiceSoprano, &voiceAlto, &voiceBass };
 static_assert(sizeof(VOICES) / sizeof(VOICES[0]) == VOICE_COUNT,
               "VOICES[] must match VOICE_DEFS[]");
