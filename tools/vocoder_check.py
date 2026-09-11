@@ -29,7 +29,9 @@ from scipy.signal import butter, sosfilt, welch
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
 from vocoder_render import (SR, NB, BANDS, BANK_Q, CONSONANT_RANGE, SIL,
-                            cons_frames, build_note, render)
+                            cons_frames, build_note, render, mtof, RECIPE_SETS)
+
+RECIPES = "v2"      # the set being shipped; --recipes selects another
 
 FAILS = []
 
@@ -169,13 +171,62 @@ def check_leak():
          (f"  {offenders[:4]}" if offenders else ""))
 
 
+# ---- 6. voiced-consonant harmonic coverage --------------------------------
+def check_coverage(recipes):
+    """A SUSTAINED voiced consonant that passes fewer than two harmonics is a
+    sine, not a consonant — that is the m defect, generalised.
+
+    Only sustained (>=50 ms) band-limited voiced recipes are gated. Plosive
+    bursts (b, d, g) are 20 ms transients whose band is a place-of-articulation
+    cue rather than a harmonic structure, so a thin count reads as a blip; they
+    are reported for information only.
+    """
+    pitches = [(57,"A3"),(60,"C4"),(64,"E4"),(67,"G4"),(72,"C5"),(76,"E5"),
+               (79,"G5"),(84,"C6")]
+
+    def harmonics(spec, f0):
+        lit=[b for b in range(NB) if spec[b] > 0]
+        return sum(1 for k in range(1,30)
+                   if any(BANDS[b]-BANDS[b]/9 <= k*f0 <= BANDS[b]+BANDS[b]/9
+                          for b in lit))
+
+    sustained, transient = [], []
+    for code in ("m","n","b","d","g"):
+        rows=[]
+        for p,_ in pitches:
+            f0=mtof(p)
+            seg=cons_frames(code, 96, 1.0, recipes, f0)
+            spec, _v, nfr = seg[-1]
+            rows.append(harmonics(spec, f0))
+        ms = sum(n for _,_,n in cons_frames(code,96,1.0,recipes,mtof(60)))*10
+        (sustained if ms >= 50 else transient).append((code, rows, ms))
+
+    ok = all(min(r) >= 2 for _c, r, _m in sustained)
+    print(f"  {'':6}{'ms':>5}  " + "".join(f"{n:>5}" for _,n in pitches))
+    for code, rows, ms in sustained:
+        bad = "  <-- sine-like" if min(rows) < 2 else ""
+        print(f"  {code:<6}{ms:>5}  " + "".join(f"{r:>5}" for r in rows) + bad)
+    for code, rows, ms in transient:
+        print(f"  {code:<6}{ms:>5}  " + "".join(f"{r:>5}" for r in rows)
+              + "   (transient, informational)")
+    gate("voiced coverage", ok, f"sustained voiced consonants, recipes={recipes}")
+
+
 def main():
-    print("vocoder engine gates\n")
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--recipes", default=RECIPES, choices=list(RECIPE_SETS),
+                    help="which recipe set to gate (default: the shipping set). "
+                         "The frozen reference is guarded separately by "
+                         "vocoder_render.py --verify.")
+    args = ap.parse_args()
+    print(f"vocoder engine gates   [recipes={args.recipes}]\n")
     check_aliasing()
     check_ripple()
     check_fricatives()
     check_tails()
     check_leak()
+    check_coverage(args.recipes)
     if FAILS:
         print(f"\n{len(FAILS)} gate(s) FAILED: {', '.join(FAILS)}")
         return 1

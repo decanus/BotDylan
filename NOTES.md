@@ -588,7 +588,48 @@ Two related numbers:
   it at full level. Worth knowing when A/Bing the pair: the control is
   "no fricatives or plosives", not "no consonants".
 
-**_(to fill in)_** Which m sounds like an m: wider band, lower level, or both.
+Verdict: the wider band won. But widening it to a *fixed* 0–1100 Hz only fixed
+it where we happened to be listening.
+
+## Are we tuning for one song?
+
+Asked at the right moment, and the answer was: partly.
+
+The m **diagnosis** generalised — m and n pass ≤1 harmonic at every pitch, and
+**0 above C5**, where the nasal is simply silent. Amazing Grace didn't cause
+that; it only revealed it.
+
+The m **fix** did not generalise. A fixed 0–1100 Hz band gives 4/3/3/2
+harmonics at A3–G4 — the six notes of this phrase — and 1/1/1 at C5–G5. It is a
+**ratio problem, not a frequency problem**: a nasal murmur is "the low
+harmonics of whatever note is sounding", so the band has to track f0. The v2
+recipe is `0.8·f0 .. 5·f0`, which holds 3–5 harmonics from A3 to C6 with a
+steady 7–8 bands lit, so loudness doesn't drift with pitch either.
+
+**Not everything should be pitch-relative.** `b`, `d` and `g` keep absolute
+bands: their spectral region is a place-of-articulation cue tied to the vocal
+tract — the velar pinch for `g`, the alveolar region for `d` — and tracking f0
+would move them off the cue that identifies them. They are also 20 ms
+transients rather than 90 ms sustains, so a thin harmonic count reads as a blip
+rather than a tone.
+
+What the coverage sweep also exposed, which no amount of listening to this
+phrase would have:
+
+- **`b` is worse than `m` was** — sine-like at 5 of 8 pitches, and silent at
+  three of them — and it does not appear in this phrase, so it has never been
+  heard.
+- **`f`, `b` and `w` have never been rendered** in anything auditioned.
+- **Nothing above G4 had been tested**, for any consonant.
+
+So gate 6 exists: any *sustained* voiced consonant must pass ≥2 harmonics
+across A3–C6. It fails on the frozen reference (m, n) and passes on v2, and it
+would have caught the whole class without a single listen. `tools/` now also
+renders a consonant matrix — 15 consonants × 4 pitches — so tuning decisions
+are made against the space rather than against whichever syllables a song
+happens to contain.
+
+**_(to fill in)_** `b` at C5 and above. Flagged, not retuned.
 
 **_(to fill in)_** Verdict on the reference render, and on whether mode 2
 should be aligned to the house sound or stay as the reference has it.

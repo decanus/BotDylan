@@ -94,7 +94,38 @@ CONSONANT_RANGE = {
 }
 
 
-def cons_frames(code, vw, dic):
+# --- recipe sets -----------------------------------------------------------
+# "reference" is frozen: it reproduces vocoder_reference.py exactly, and the
+# byte-match acceptance test runs against it. Every tuning change lands as a
+# NEW set, so the reference stays a fixed point to measure against and each
+# change stays individually A/B-able.
+#
+# v2 changes, each from a listening verdict plus a coverage measurement:
+#
+#   m, n  band 0-420 -> PITCH-RELATIVE 0.8*f0 .. 5*f0, amp 0.8 -> 0.45.
+#
+#         At 0-420 the nasal passed exactly one harmonic — the fundamental —
+#         and measured 99.9% of its energy there. It was a sine, not an m. It
+#         was also SILENT above C5, where no harmonic lands in 0-420 at all.
+#
+#         A fixed wider band (0-1100) fixes it only where we happened to
+#         listen: 4/3/3/2 harmonics at A3-G4, but 1/1/1 at C5-G5. This is a
+#         ratio problem, not a frequency problem — a nasal murmur is "the low
+#         harmonics of whatever note is sounding" — so the band has to track
+#         f0. 0.8..5*f0 holds 3-5 harmonics across A3-G5 with a steady 7-8
+#         bands lit, so the loudness does not drift with pitch either.
+#
+# DELIBERATELY NOT CHANGED: b, d and g keep their absolute bands. Their
+# spectral region is a place-of-articulation cue — the velar pinch for g, the
+# alveolar region for d — tied to the vocal tract, not to f0. Making those
+# track pitch would move them off the cue that identifies them. They are also
+# 20 ms transients rather than 90 ms sustains, so a thin harmonic count reads
+# as a blip rather than as a tone. b is the weakest of the three (sine-like at
+# 5 of 7 pitches) and is flagged in NOTES rather than silently retuned.
+RECIPE_SETS = ("reference", "v2")
+
+
+def cons_frames(code, vw, dic, recipes="reference", f0=None):
     seg=[]
     def push(spec,voi,ms,amp): seg.append((spec*amp, voi, max(1,round(ms/10))))
     vsp = vowel_spectrum(vw)
@@ -108,13 +139,18 @@ def cons_frames(code, vw, dic):
     elif code=="d": push(SIL,1,20,1); push(band_only(1400,3000,1),1,18,0.28*dic)
     elif code=="g": push(SIL,1,22,1); push(band_only(900,2000,1),1,20,0.30*dic)
     elif code=="h": push(vsp,0,55,0.30*dic)
-    elif code in ("m","n"): push(band_only(0,420,1),1,90,0.8)
+    elif code in ("m","n"):
+        if recipes=="v2" and f0:
+            push(band_only(0.8*f0, 5.0*f0, 1), 1, 90, 0.45)
+        else:
+            push(band_only(0,420,1),1,90,0.8)
     elif code=="w": push(vowel_spectrum(0),1,90,0.9)
     elif code in ("l","r"): push(vowel_spectrum(38),1,90,0.9)
     return seg
 
 
-def build_note(vw,on,co,dur_s,dic,smear_ms,release_above=2500):
+def build_note(vw,on,co,dur_s,dic,smear_ms,release_above=2500,recipes="reference",
+               f0=None):
     N = max(6, round(dur_s/FR))
     bands = np.zeros((NB,N)); voi = np.zeros(N); amp = np.zeros(N)
     f = 0
@@ -124,13 +160,13 @@ def build_note(vw,on,co,dur_s,dic,smear_ms,release_above=2500):
             for _ in range(n):
                 if f>=N: return
                 bands[:,f]=spec; voi[f]=v; amp[f]=1; f+=1
-    if on: write(cons_frames(on,vw,dic))
+    if on: write(cons_frames(on,vw,dic,recipes,f0))
     vsp = vowel_spectrum(vw)
     # Rule 3: one 10 ms frame at 15% vowel between an unvoiced onset and the vowel.
     if on in UNVOICED_ONSETS and f<N:
         bands[:,f]=vsp*0.15; voi[f]=1; amp[f]=1; f+=1
     glide_from = f if on in ("w","l","r","m","n") else -1
-    co_seg = cons_frames(co,vw,dic) if co else []
+    co_seg = cons_frames(co,vw,dic,recipes,f0) if co else []
     co_n = sum(n for _,_,n in co_seg)
     sus_end = N-co_n-3; sus_start=f
     while f<sus_end and f<N:
@@ -163,7 +199,8 @@ def build_note(vw,on,co,dur_s,dic,smear_ms,release_above=2500):
     return bands, voi_s, N
 
 
-def render(notes, quarter_ms, dic, smear_ms, gap_ms=REF_GAP_MS, release_above=2500):
+def render(notes, quarter_ms, dic, smear_ms, gap_ms=REF_GAP_MS, release_above=2500,
+           recipes="reference"):
     """notes: [(midi, beats, vowelCC, velocity, onset, coda)], rests as midi=None."""
     total_ms = sum(round(b*quarter_ms) for _,b,_,_,_,_ in notes) + 600
     NF = round(total_ms/10)
@@ -173,7 +210,8 @@ def render(notes, quarter_ms, dic, smear_ms, gap_ms=REF_GAP_MS, release_above=25
         if note is None:                       # a rest just advances the clock
             t += round(beats*quarter_ms); continue
         dur_s = (round(beats*quarter_ms)-gap_ms)/1000
-        bands, voi, N = build_note(vw,on,co,dur_s,dic,smear_ms,release_above)
+        bands, voi, N = build_note(vw,on,co,dur_s,dic,smear_ms,release_above,recipes,
+                                   mtof(note))
         lvl = REF_LEVEL_BASE+REF_LEVEL_SCALE*(vel/127)
         off = round(t/10); n = min(N, NF-off)
         g_bands[:,off:off+n] = bands[:,:n]*lvl
@@ -275,6 +313,10 @@ def main(argv=None):
                     help="bands above this get rule 2's fast 4 ms release; below "
                          "it they release at the smear time. Default 2500 is the "
                          "reference. 0 gives every band the fast release.")
+    ap.add_argument("--recipes", default="reference", choices=list(RECIPE_SETS),
+                    help="consonant recipe set. 'reference' reproduces the frozen "
+                         "spec and is what --verify checks; later sets carry tuning "
+                         "changes that came from listening verdicts.")
     ap.add_argument("--voice", default="sop", choices=["sop","alto","bass"])
     ap.add_argument("--first", type=int, default=None,
                     help="render only the first N notes")
@@ -293,7 +335,7 @@ def main(argv=None):
     song = json.loads(args.song.read_text())
     notes = notes_from_song(song, args.voice, args.first)
     out = render(notes, song["quarterMs"], args.diction, args.smear, args.gap_ms,
-                 args.release_above)
+                 args.release_above, args.recipes)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     wavfile.write(str(args.out), SR, (out*32767).astype(np.int16))
 
