@@ -9,22 +9,26 @@ code recorded a reason for them, so nothing is asserted here.
 
 ---
 
-## Vibrato — 5.2 Hz, depth 0.12, LFO amplitude 0.35
+## Vibrato — 5.0 Hz, depth 0.12, LFO amplitude 0.35
+*(was 5.2 Hz through session 1; per-voice rates since session 2)*
 
 ```c
 glottis.frequencyModulation(0.12f);   // vibrato depth
-vibratoLFO.frequency(5.2f);
+vibratoLFO.frequency(def_.vibratoHz);   // 5.0 soprano, 4.6 alto, 4.3 bass
 vibratoLFO.amplitude(0.35f);
 ```
 
 The LFO feeds the FM input of the sawtooth, so depth is the product of
 `frequencyModulation` (octaves at full scale) and the LFO's own amplitude.
 
-Human singing vibrato sits around 5–7 Hz. 5.2 Hz is at the slow end of that
+Human singing vibrato sits around 5–7 Hz. 5.0 Hz is at the slow end of that
 band — slower reads as controlled and adult, faster as nervous or operatic.
 
-**_(to fill in)_** Why 5.2 and not 5.5 or 6? Was this landed on by ear or
-picked off a reference? Note what it sounded like on either side.
+Now **5.0 Hz** on the soprano, with alto at 4.6 and bass at 4.3 — see the
+session 2 findings below on vibrato rate as an intensity control.
+
+**_(to fill in)_** Why 5.0 and not 5.2, where it started? Note what it sounded
+like on either side.
 
 **_(to fill in)_** Whether vibrato should ramp in after note onset rather than
 being present from the first sample. Real singers do not start a note with
@@ -118,24 +122,28 @@ robotic" work. Log what 20 ms and 80 ms sounded like.
 
 ```c
 sourceMix.gain(0, 0.85f);        // glottis
-breathLevel = 0.06f;             // default breath, CC2 overrides
-// CC2: breathLevel = 0.02f + (val / 127.0f) * 0.25f;
+breathLevel = 0.0f;              // default breath, CC2 overrides
+// CC2: breathLevel = 0.0f + (val / 127.0f) * 0.27f;
 ```
 
-Breath sits at 6% by default, and CC2 sweeps 2%–27%. Noise is what keeps a
-sustained note from sounding like a held organ chord.
+> **Superseded in session 2.** Breath used to sit at 6% by default, on the
+> theory that noise keeps a sustained note from sounding like a held organ
+> chord. Removing it turned out to sound better — see the session 2 findings.
+> CC2 now sweeps 0%–27% from silence.
 
 **_(to fill in)_** Whether breath should duck during the sustain and rise on
-attack/release, which is what real breath does.
+attack/release, which is what real breath does. Untested since it was switched
+off; it may be worth more as a shaped gesture than as a bed.
 
 ---
 
 ## Velocity mapping
 
 ```c
-glottis.amplitude(0.25f + 0.5f * noteVelocity);   // loudness
+glottis.amplitude(0.22f + 0.5f * noteVelocity);   // loudness
 jawSetTarget(0.35f + 0.65f * noteVelocity);       // mouth
 ```
+*(amplitude base was 0.25 through session 1)*
 
 Both are offset-plus-scale rather than proportional: velocity 1 still makes
 sound (0.25) and still opens the mouth (0.35). A quiet note that barely moves
@@ -149,8 +157,9 @@ vs 0.5) — the mouth is more expressive than the amplitude.
 ## Jaw motion
 
 ```c
-float rate = (target > jawActual) ? 0.30f : 0.12f;   // fast open, slow close
+float rate = (target > jawActual) ? 0.28f : 0.11f;   // fast open, slow close
 ```
+*(was 0.30 / 0.12 through session 1)*
 
 Asymmetric easing at a 200 Hz control rate. Opening is 2.5× faster than
 closing. This is the whole illusion: a syllable starts abruptly and the mouth
@@ -204,3 +213,124 @@ comparing every numeric literal in the tree. Build sizes matched closely
 **Size parity is a proxy, not proof.** If the robot sounds different after the
 refactor, `git bisect` between `cbe372d` (original sketch) and `0297b7c`
 (module split) will find it, and this file should record what changed.
+
+---
+
+# Session 2 findings
+
+Landed after a stretch of iterating in the browser simulator. These are the
+decisions that changed the design, in roughly the order they mattered.
+
+## Breath is off by default now
+
+Removing the constant breath-noise bed made the tone purer and better. It had
+been at 0.06 since the beginning on the theory that a little air stops a
+sustained note sounding like a held organ chord. In practice it just muddied
+everything. CC2 still sweeps it back in from silence (0.00–0.27) for anyone
+who wants it, but zero is the resting state.
+
+## Articulation through formant motion sounds sung; added noise sounds mechanical
+
+This is the central finding of the session. Moving the formants to shape a
+syllable reads as singing. Adding noise to shape a syllable reads as a machine
+doing an impression of singing. Choir directors coach "sing on the vowel" for
+the same reason — the consonant is a transition between vowels, not a separate
+sound stapled on the front.
+
+So articulation is glides, and only glides. CC3 picks one per note:
+
+- `w` — vowel starts at 0.0 ("oo") and travels to the note's vowel
+- `l` — starts at 1.2 (just past "oh") and travels the same way
+- none — the vowel steps straight to target
+
+The travel is not a ramp. The vowel position *jumps* to the glide's start, and
+the ordinary 35 ms formant smoothing does the moving; after `GLIDE_MS` (110 ms)
+the target is released to the note's real vowel and the same smoothing carries
+it the rest of the way. Two steps and a one-pole filter, no ramp generator.
+
+## Why the consonant engine was rejected
+
+We built one — fricative noise, plosive gaps and bursts, nasal pre-hum — and
+threw it away.
+
+The killer was the plosive burst. A narrow-band noise burst rings at the
+filter's centre frequency, because an impulse into a high-Q bandpass *is* a
+struck bell. That was the "beep" we kept hearing and kept failing to tune out.
+It is not a bug to be fixed; it is what a resonant filter does to an impulse.
+
+**Preferred consonant level: zero. Glides only.** Do not add consonant noise to
+the main firmware. If it gets revisited, it goes on an `experiment/consonants`
+branch and stays there until it earns its way out.
+
+## Vowel choreography rules that work
+
+- Map vowels to the lyric's vowel skeleton. The vowels carry the word; write
+  those and ignore the consonants entirely.
+- On melodies without lyrics, map openness to pitch height — high notes open,
+  low notes closed. Ode to Joy uses a literal pitch→vowel lookup for this.
+- Re-articulate repeated notes with a short gap, about 60 ms. Without it two
+  notes at the same pitch are one long note. `gapMs` in the song format and the
+  exporter both use 60.
+
+## Vibrato rate carries emotional intensity
+
+Automating vibrato rate with musical intensity was the key expressiveness
+find — it does more than any amount of level or vowel automation.
+
+- calm ≈ 4.3–4.8 Hz
+- urgent ≈ 5.5+
+
+CC4 sweeps 2–9 Hz on the soprano; the other voices scale proportionally so the
+choir keeps its internal character rather than converging on one rate. Vibrato
+depth wants to sit around 35–45 on the simulator's 0–100 scale.
+
+**_(to fill in)_** Where rate automation starts sounding seasick rather than
+intense.
+
+## The three voices
+
+| Voice | Vibrato | Detune | Formant scale | Mix |
+|---|---|---|---|---|
+| Soprano | 5.0 Hz | 0 ¢ | 1.00 | 0.42 |
+| Alto | 4.6 Hz | +4 ¢ | 0.93 | 0.30 |
+| Bass | 4.3 Hz | −3 ¢ | 0.82 | 0.34 |
+
+Formant scale is what makes the bass a bass. Transposing a voice down without
+scaling its formants gives you a chipmunk played slowly; scaling the formant
+centres down to 0.82 makes it read as a physically bigger person. Detune is
+small on purpose — a few cents apart is a choir, twenty cents apart is out of
+tune.
+
+**_(to fill in)_** Whether the mix levels hold up on the actual speaker. They
+sum to 1.06 at full tilt, which has headroom only because three voices rarely
+peak together.
+
+## Firmware / simulator reconciliation
+
+The two implementations had drifted apart on five values nobody had ruled on.
+Resolved by asking which side had actually *decided* the thing:
+
+| | Firmware was | Simulator was | Winner |
+|---|---|---|---|
+| Jaw open / close | 0.30 / 0.12 | 0.28 / 0.11 | simulator |
+| Velocity → amplitude | 0.25 + 0.5v | 0.22 + 0.5v | simulator |
+| Portamento | instant | 25 ms | simulator |
+| Envelope | ADSR 45/120/0.85/260 | attack + release only | **firmware** |
+| Vibrato depth | proportional (octaves) | fixed ±4.5 Hz | **firmware** |
+
+The last two were the simulator being approximate rather than opinionated. Web
+Audio makes a real ADSR awkward, so it had grown a one-pole attack and release
+with no decay or sustain stage at all. And a fixed Hz vibrato deviation means a
+low bass note wobbles far wider *in cents* than a high soprano note — musically
+wrong, and most obvious exactly where the choir spreads out. The simulator now
+runs a linear ADSR and drives `osc.detune` in cents, which is proportional.
+
+**_(to fill in)_** Whether the 0.25 → 0.22 amplitude drop is audible at all, or
+whether it was just drift nobody noticed.
+
+## Still unverified
+
+Nothing in session 2 has run on hardware. The build is clean and the host-side
+parity checks pass, but audio, servo motion and the audio budget are all
+unconfirmed. `AUDIO_MEMORY_BLOCKS` at 60 is a guess — read
+`AudioMemoryUsageMax()` off a real Teensy via `ENABLE_PERF_REPORT` and trim it.
