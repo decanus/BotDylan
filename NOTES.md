@@ -498,3 +498,67 @@ better with the artifact than without.
 
 **_(to fill in)_** Whether the naive transcriber's 80–800 Hz range is enough in
 practice, or whether humming down at the bass part needs the lower bound moved.
+
+---
+
+# Vocoder mode (experimental, branch `mode/vocoder`)
+
+Pronunciation lives in band envelopes, not in events. Consonants that stop beat
+consonants that fade. The synthesis floor has to be clean before consonant
+tuning means anything — we tuned consonants on top of aliasing for two rounds
+without knowing it.
+
+## The five rules, and what each one cost to learn
+
+Each is a defect that was heard first and measured second. `vocoder_check.py`
+is the regression test for all five; the numbers below are from this machine.
+
+1. **Levels and tilt.** Consonants sit 10–15 dB under the vowel in 2–8 kHz,
+   with a `min(1,(4200/f)^0.6)` high-frequency tilt. Out-of-band gain is
+   **exactly** 0 — a 0.04 leak was audible as broadband harshness.
+2. **Asymmetric smear.** Smear time on attacks and on bands ≤ 2.5 kHz, a fixed
+   4 ms release above it. Symmetric decay was an audible downward sweep.
+   Fricatives have to stop.
+3. **Articulation dip.** One frame at 15% vowel between an unvoiced onset and
+   the vowel. Plosive pre-gaps are near-silence at 0.004, voiced — never an
+   unvoiced noise floor.
+4. **Hard-zero tails.** A 24% residual held between notes and was audible as
+   noise on the next syllable's *start*, which is why it took so long to find.
+5. **Clean synthesis floor.** Bandlimited carrier: naive saw measures −36.4 dB
+   aliasing, bandlimited −85.0 dB. Alternating-polarity band summation:
+   all-positive measures 9.3 dB ripple at Q=4.5, alternating 3.1 dB.
+
+## Measured findings from productionising it
+
+- **The diagnostics measured a configuration that does not ship.**
+  `vocoder_diagnostics.py` sums the bank all-positive, with no polarity
+  alternation — so it reports the 9.3 dB case, and productionising it unchanged
+  would have produced a check that fails on correct output. It also tests
+  Q=4/5 and Q=3.8 while the spec ships Q=4.5, and measures 1–6 kHz against an
+  acceptance range of 400 Hz–6 kHz. Left unedited; the spec is frozen.
+- Q=3.8 uniform, the configuration its docstring proposes as an improvement,
+  measures **29.3 dB** ripple — considerably worse than the 11.5 dB split it
+  was meant to fix.
+- **`f` is out of spec.** −20.2 dB in the 2–8 kHz window, −23.0 dB in its own
+  band. It is the only recipe stacking a sub-unity band gain (0.7) with the
+  lowest amplitude (0.16): 0.112 effective, about 40% of `s`.
+- **`k` reads out of spec but isn't.** Its band is 1200–2400 Hz, mostly below
+  the specified measurement window, so 2–8 kHz measures its tail. In its own
+  range it is −15.8 dB, inside spec. One window does not fit every consonant.
+
+## Known divergence from mode 1
+
+Kept deliberately, so mode 2 renders exactly as the reference:
+
+| | mode 2 (vocoder) | mode 1 (`house_sound.h`) |
+|---|---|---|
+| Vibrato | 4.8 Hz, fixed ±5 Hz | 5.0 Hz, proportional (50.4 ¢) |
+| Level | `0.25 + 0.5·vel` | `GLOTTIS_AMP_BASE` 0.22 |
+| Note gap | 40 ms | the songs' own `gapMs`, 60 |
+
+The vibrato row is the fixed-vs-proportional question from session 2 arriving
+again by a different route. Mode 2 is therefore a slightly different voice from
+mode 1, which is a thing to rule on by ear, not by diff.
+
+**_(to fill in)_** Verdict on the reference render, and on whether mode 2
+should be aligned to the house sound or stay as the reference has it.
