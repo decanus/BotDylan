@@ -1,0 +1,289 @@
+{
+  "name": "Amazing Grace",
+  "meter": "3/4",
+  "quarterMs": 560,
+  "gapMs": 60,
+  "source": "extracted from tools/simulator.html - keep in parity",
+  "notes": [
+    {
+      "sop": 55,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 64,
+      "syllable": "A",
+      "velocity": 72,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": 52,
+      "bass": 36,
+      "beats": 2,
+      "vowelCC": 80,
+      "syllable": "ma",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 36,
+      "beats": 1,
+      "vowelCC": 120,
+      "syllable": "zing",
+      "velocity": 80,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 36,
+      "beats": 2,
+      "vowelCC": 96,
+      "syllable": "grace",
+      "velocity": 88,
+      "glide": "l"
+    },
+    {
+      "sop": 62,
+      "alto": 59,
+      "bass": 31,
+      "beats": 1,
+      "vowelCC": 64,
+      "syllable": "how",
+      "velocity": 78,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": 57,
+      "bass": 41,
+      "beats": 2,
+      "vowelCC": 127,
+      "syllable": "sweet",
+      "velocity": 84,
+      "glide": "w"
+    },
+    {
+      "sop": 57,
+      "alto": 53,
+      "bass": 41,
+      "beats": 1,
+      "vowelCC": 38,
+      "syllable": "the",
+      "velocity": 74,
+      "glide": ""
+    },
+    {
+      "sop": 55,
+      "alto": 52,
+      "bass": 36,
+      "beats": 3,
+      "vowelCC": 58,
+      "syllable": "sound",
+      "velocity": 78,
+      "glide": ""
+    },
+    {
+      "sop": 55,
+      "alto": 52,
+      "bass": 36,
+      "beats": 1,
+      "vowelCC": 58,
+      "syllable": "that",
+      "velocity": 74,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": 52,
+      "bass": 36,
+      "beats": 2,
+      "vowelCC": 96,
+      "syllable": "saved",
+      "velocity": 86,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 36,
+      "beats": 1,
+      "vowelCC": 32,
+      "syllable": "a",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 36,
+      "beats": 2,
+      "vowelCC": 96,
+      "syllable": "wretch",
+      "velocity": 88,
+      "glide": "l"
+    },
+    {
+      "sop": 62,
+      "alto": 59,
+      "bass": 31,
+      "beats": 1,
+      "vowelCC": 70,
+      "syllable": "like",
+      "velocity": 80,
+      "glide": "l"
+    },
+    {
+      "sop": 67,
+      "alto": 59,
+      "bass": 31,
+      "beats": 3,
+      "vowelCC": 127,
+      "syllable": "me",
+      "velocity": 104,
+      "glide": ""
+    },
+    {
+      "sop": 67,
+      "alto": 64,
+      "bass": 36,
+      "beats": 1,
+      "vowelCC": 70,
+      "syllable": "I",
+      "velocity": 96,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 36,
+      "beats": 2,
+      "vowelCC": 30,
+      "syllable": "once",
+      "velocity": 84,
+      "glide": "w"
+    },
+    {
+      "sop": 62,
+      "alto": 59,
+      "bass": 31,
+      "beats": 1,
+      "vowelCC": 36,
+      "syllable": "was",
+      "velocity": 78,
+      "glide": "w"
+    },
+    {
+      "sop": 60,
+      "alto": 57,
+      "bass": 41,
+      "beats": 2,
+      "vowelCC": 42,
+      "syllable": "lost",
+      "velocity": 80,
+      "glide": "l"
+    },
+    {
+      "sop": 57,
+      "alto": 53,
+      "bass": 41,
+      "beats": 1,
+      "vowelCC": 34,
+      "syllable": "but",
+      "velocity": 72,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": 52,
+      "bass": 36,
+      "beats": 2,
+      "vowelCC": 64,
+      "syllable": "now",
+      "velocity": 82,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": 59,
+      "bass": 31,
+      "beats": 1,
+      "vowelCC": 70,
+      "syllable": "am",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 36,
+      "beats": 3,
+      "vowelCC": 60,
+      "syllable": "found",
+      "velocity": 92,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 36,
+      "beats": 1,
+      "vowelCC": 36,
+      "syllable": "was",
+      "velocity": 78,
+      "glide": "w"
+    },
+    {
+      "sop": 60,
+      "alto": 57,
+      "bass": 33,
+      "beats": 2,
+      "vowelCC": 74,
+      "syllable": "blind",
+      "velocity": 86,
+      "glide": "l"
+    },
+    {
+      "sop": 57,
+      "alto": 53,
+      "bass": 33,
+      "beats": 1,
+      "vowelCC": 34,
+      "syllable": "but",
+      "velocity": 72,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": 52,
+      "bass": 31,
+      "beats": 2,
+      "vowelCC": 64,
+      "syllable": "now",
+      "velocity": 80,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": 59,
+      "bass": 31,
+      "beats": 1,
+      "vowelCC": 70,
+      "syllable": "I",
+      "velocity": 82,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": 52,
+      "bass": 24,
+      "beats": 3,
+      "vowelCC": 127,
+      "syllable": "see",
+      "velocity": 88,
+      "glide": ""
+    }
+  ]
+}

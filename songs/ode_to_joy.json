@@ -1,0 +1,309 @@
+{
+  "name": "Ode to Joy",
+  "meter": "4/4",
+  "quarterMs": 480,
+  "gapMs": 60,
+  "source": "extracted from tools/simulator.html - keep in parity",
+  "notes": [
+    {
+      "sop": 64,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 56,
+      "syllable": "",
+      "velocity": 92,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 56,
+      "syllable": "",
+      "velocity": 92,
+      "glide": ""
+    },
+    {
+      "sop": 65,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 72,
+      "syllable": "",
+      "velocity": 96,
+      "glide": ""
+    },
+    {
+      "sop": 67,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 88,
+      "syllable": "",
+      "velocity": 104,
+      "glide": ""
+    },
+    {
+      "sop": 67,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 88,
+      "syllable": "",
+      "velocity": 104,
+      "glide": ""
+    },
+    {
+      "sop": 65,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 72,
+      "syllable": "",
+      "velocity": 96,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 56,
+      "syllable": "",
+      "velocity": 92,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 38,
+      "syllable": "",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 16,
+      "syllable": "",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 16,
+      "syllable": "",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 38,
+      "syllable": "",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 56,
+      "syllable": "",
+      "velocity": 92,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": null,
+      "bass": null,
+      "beats": 1.5,
+      "vowelCC": 56,
+      "syllable": "",
+      "velocity": 92,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": null,
+      "bass": null,
+      "beats": 0.5,
+      "vowelCC": 38,
+      "syllable": "",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": null,
+      "bass": null,
+      "beats": 2,
+      "vowelCC": 38,
+      "syllable": "",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 56,
+      "syllable": "",
+      "velocity": 92,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 56,
+      "syllable": "",
+      "velocity": 92,
+      "glide": ""
+    },
+    {
+      "sop": 65,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 72,
+      "syllable": "",
+      "velocity": 96,
+      "glide": ""
+    },
+    {
+      "sop": 67,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 88,
+      "syllable": "",
+      "velocity": 104,
+      "glide": ""
+    },
+    {
+      "sop": 67,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 88,
+      "syllable": "",
+      "velocity": 104,
+      "glide": ""
+    },
+    {
+      "sop": 65,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 72,
+      "syllable": "",
+      "velocity": 96,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 56,
+      "syllable": "",
+      "velocity": 92,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 38,
+      "syllable": "",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 16,
+      "syllable": "",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 16,
+      "syllable": "",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 38,
+      "syllable": "",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 56,
+      "syllable": "",
+      "velocity": 92,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": null,
+      "bass": null,
+      "beats": 1.5,
+      "vowelCC": 38,
+      "syllable": "",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": null,
+      "bass": null,
+      "beats": 0.5,
+      "vowelCC": 16,
+      "syllable": "",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": null,
+      "bass": null,
+      "beats": 2,
+      "vowelCC": 16,
+      "syllable": "",
+      "velocity": 76,
+      "glide": ""
+    }
+  ]
+}
