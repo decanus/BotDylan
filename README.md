@@ -1,5 +1,8 @@
 # Bot Dylan
 
+**Try it in a browser: [decanus.github.io/BotDylan](https://decanus.github.io/BotDylan/)** —
+no install, no build. Click "Start audio", then pick a song.
+
 A desktop robot that sings by itself, in three-part harmony. There is no
 vocoder and no human vocal input anywhere in the signal path: each voice is a
 band-limited sawtooth "glottis" through three parallel bandpass filters tuned
@@ -91,14 +94,13 @@ lyrics as the firmware gets, and deliberately so — see NOTES.md on consonants.
 
 ## The live page
 
-The simulator is published to GitHub Pages on every push to `main` by
-`.github/workflows/pages.yml`.
+**Live at [decanus.github.io/BotDylan](https://decanus.github.io/BotDylan/)**,
+republished on every push to `main` by `.github/workflows/pages.yml`.
 
-**One manual step, once:** in the repo on GitHub, go to
+If you fork this, there is one manual step before the first deploy works: go to
 **Settings → Pages → Build and deployment → Source** and choose
-**"GitHub Actions"**. Until that is set the workflow will run and then fail at
-the deploy step. Once it is set, the URL will be
-`https://decanus.github.io/BotDylan/` — confirm it and it gets recorded here.
+**"GitHub Actions"**. Until that is set the build job succeeds and the deploy
+job fails with `HttpError: Not Found`.
 
 How it is built:
 
