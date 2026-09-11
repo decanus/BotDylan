@@ -78,6 +78,7 @@
     <button id="playOJ">Sing Ode to Joy</button>
     <button id="playRS">Sing House of the Rising Sun</button>
     <button id="stopBtn">Stop</button>
+    <button id="recBtn">Record</button>
   </div>
 
   <div class="voices">
@@ -93,6 +94,13 @@
     <div class="ctrl"><label for="vibRate">Vibrato rate (CC4)</label><input type="range" id="vibRate" min="20" max="90" value="50"><output id="vibOut">5.0 Hz</output></div>
     <div class="ctrl"><label for="vibDepth">Vibrato depth</label><input type="range" id="vibDepth" min="0" max="100" value="45"><output id="depthOut">45</output></div>
     <div class="ctrl"><label for="master">Level</label><input type="range" id="master" min="0" max="100" value="55"><output id="masterOut">55</output></div>
+  </div>
+
+  <div class="ctrl" style="justify-content:center; margin-top:10px">
+    <label for="recBpm" style="flex:0 0 auto">Record tempo</label>
+    <input type="number" id="recBpm" min="40" max="240" value="120" style="width:72px">
+    <span class="faint">BPM</span>
+    <span id="recStatus" class="faint"></span>
   </div>
 
   <div class="keys" id="keys"></div>
@@ -330,11 +338,11 @@ for(const [name,n] of NOTES){
 const held={};
 document.addEventListener("keydown",e=>{
  const n=KEYMAP[e.key]; if(n===undefined||held[e.key])return;
- held[e.key]=true; boot(); voiceOn(0,n,100);
+ held[e.key]=true; boot(); voiceOn(0,n,100); recHook("on",0,n,100);
 });
 document.addEventListener("keyup",e=>{
  const n=KEYMAP[e.key]; if(n===undefined)return;
- held[e.key]=false; voiceOff(0);
+ held[e.key]=false; voiceOff(0); recHook("off",0,n,0);
 });
 
 /* ---- Web MIDI: channel-per-voice preview of the firmware scheme -------- */
@@ -353,10 +361,10 @@ function onMIDI(e){
  const [st,d1,d2]=e.data;
  const type=st&0xF0, ch=st&0x0F;                 // ch 0-based: 0=ch1
  const idx=ch<=2?ch:0;                            // ch1 sop, ch2 alt, ch3 bas, else sop
- if(type===0x90&&d2>0){ boot(); voiceOn(idx,d1,d2); }
- else if(type===0x80||(type===0x90&&d2===0)){ voiceOff(idx); }
+ if(type===0x90&&d2>0){ boot(); voiceOn(idx,d1,d2); recHook("on",idx,d1,d2); }
+ else if(type===0x80||(type===0x90&&d2===0)){ voiceOff(idx); recHook("off",idx,d1,0); }
  else if(type===0xB0){
-  if(d1===1){ vowelPos=(d2/127)*4; applyVowel(); $("vowel").value=d2; }
+  if(d1===1){ vowelPos=(d2/127)*4; applyVowel(); $("vowel").value=d2; recCC(1,d2); }
   if(d1===4){ setVibRate(2+(d2/127)*7); }
   if(d1===123){ allOff(); }
  }
@@ -384,6 +392,109 @@ $("master").addEventListener("input",e=>{
  $("masterOut").textContent=e.target.value;
  if(master)master.gain.setTargetAtTime(e.target.value/100,ctx.currentTime,0.05);
 });
+
+/* ---- Record mode -------------------------------------------------------
+   Captures what you play — Web MIDI or the computer keyboard — and writes it
+   out as a song JSON. Hooked at the INPUT layer, not inside voiceOn/voiceOff:
+   the audio engine is the spec and stays untouched. Song playback is never
+   recorded. No editing UI on purpose; fix it in the JSON or a DAW. */
+let recording=false, recT0=0, recEvents=[];
+
+function recHook(kind,idx,note,vel){
+ if(!recording||singing) return;
+ recEvents.push({t:performance.now()-recT0, kind:kind, idx:idx, note:note, vel:vel});
+}
+function recCC(num,val){
+ if(!recording||singing) return;
+ recEvents.push({t:performance.now()-recT0, kind:"cc", num:num, val:val});
+}
+
+function recToggle(){
+ if(!recording){
+  recording=true; recT0=performance.now(); recEvents=[];
+  $("recBtn").textContent="Stop recording";
+  $("recBtn").classList.add("primary");
+  $("recStatus").textContent="recording…";
+  return;
+ }
+ recording=false;
+ $("recBtn").textContent="Record";
+ $("recBtn").classList.remove("primary");
+ const song=recBuild();
+ if(!song){ $("recStatus").textContent="nothing recorded"; return; }
+ $("recStatus").textContent=song.notes.length+" rows — downloaded";
+ recDownload(song);
+}
+
+function recBuild(){
+ const bpm=Math.max(40,Math.min(240,parseFloat($("recBpm").value)||120));
+ const quarterMs=60000/bpm, unitMs=quarterMs/2;          // eighth-note grid
+ const q=ms=>Math.round(ms/unitMs)*unitMs;
+ const VK=["sop","alto","bass"];
+
+ /* pair note-ons with their offs */
+ const open={}, notes=[];
+ let cc1=Math.round((vowelPos/4)*127);
+ const ccAt=[];
+ for(const e of recEvents){
+  if(e.kind==="cc"&&e.num===1){ ccAt.push({t:e.t,val:e.val}); continue; }
+  const key=e.idx+":"+e.note;
+  if(e.kind==="on"){ open[key]={t:e.t,vel:e.vel}; }
+  else if(open[key]){ notes.push({idx:e.idx,note:e.note,vel:open[key].vel,
+                                  start:open[key].t,end:e.t}); delete open[key]; }
+ }
+ for(const k in open){ const [i,n]=k.split(":");
+  notes.push({idx:+i,note:+n,vel:open[k].vel,start:open[k].t,end:performance.now()-recT0}); }
+ if(!notes.length) return null;
+
+ notes.sort((a,b)=>a.start-b.start);
+ const t0=q(notes[0].start);
+ const vowelFor=t=>{ let v=cc1; for(const c of ccAt){ if(c.t<=t) v=c.val; } return v; };
+
+ /* group onsets into rows, then fill gaps with rests */
+ const byOnset=new Map();
+ for(const n of notes){
+  const s=q(n.start)-t0;
+  if(!byOnset.has(s)) byOnset.set(s,[]);
+  byOnset.get(s).push(n);
+ }
+ const onsets=[...byOnset.keys()].sort((a,b)=>a-b);
+ const rows=[];
+ onsets.forEach((s,i)=>{
+  const group=byOnset.get(s);
+  const row={sop:null,alto:null,bass:null};
+  let extent=s, vel=null;
+  for(const n of group){
+   row[VK[n.idx]]=n.note;
+   extent=Math.max(extent,Math.max(q(n.end)-t0,s+unitMs));
+   if(vel===null) vel=n.vel;
+  }
+  const next=i+1<onsets.length?onsets[i+1]:extent;
+  const sound=next>s?Math.min(extent,next):extent;
+  rows.push({sop:row.sop,alto:row.alto,bass:row.bass,
+             beats:(sound-s)/quarterMs, vowelCC:vowelFor(s+t0),
+             syllable:"", velocity:vel, glide:""});
+  if(next>sound) rows.push({sop:null,alto:null,bass:null,
+             beats:(next-sound)/quarterMs, vowelCC:0, syllable:"", velocity:0, glide:""});
+ });
+ for(const r of rows) r.beats=Math.round(r.beats*1000)/1000;
+
+ return {name:"Recorded "+new Date().toISOString().slice(0,16).replace("T"," "),
+         meter:"4/4", quarterMs:Math.round(quarterMs), gapMs:60,
+         source:"recorded in tools/simulator.html — listen before it enters songs/",
+         notes:rows};
+}
+
+function recDownload(song){
+ const blob=new Blob([JSON.stringify(song,null,2)+"\n"],{type:"application/json"});
+ const a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download="recorded.json";
+ document.body.appendChild(a); a.click(); a.remove();
+ setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+$("recBtn").addEventListener("click",recToggle);
+
 $("power").addEventListener("click",boot);
 $("playAG").addEventListener("click",()=>playSong(AMAZING_GRACE));
 $("playOJ").addEventListener("click",()=>playSong(ODE_TO_JOY));
