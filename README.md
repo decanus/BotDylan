@@ -89,6 +89,32 @@ Digitakt tip: p-lock CC1 per step and each note gets its own vowel; p-lock CC3
 alongside it and each note gets its own articulation. That is as close to
 lyrics as the firmware gets, and deliberately so — see NOTES.md on consonants.
 
+## The live page
+
+The simulator is published to GitHub Pages on every push to `main` by
+`.github/workflows/pages.yml`.
+
+**One manual step, once:** in the repo on GitHub, go to
+**Settings → Pages → Build and deployment → Source** and choose
+**"GitHub Actions"**. Until that is set the workflow will run and then fail at
+the deploy step. Once it is set, the URL will be
+`https://decanus.github.io/BotDylan/` — confirm it and it gets recorded here.
+
+How it is built:
+
+- `index.html` is a **copy** of `tools/simulator.html`, never a build product.
+  That is what keeps the page working from `file://` with no build step, and
+  keeps a second copy of the simulator out of the repo.
+- The sample MIDI files are **generated in CI**, not committed. They derive
+  entirely from `songs/*.json`, and a committed derivative is exactly the kind
+  of duplicate the parity rule exists to prevent. `.gitignore` covers `*.mid`.
+- Both checks gate the deploy: `check_song_parity.js` and `verify_midi.py`. A
+  drifted song or a malformed MIDI file never reaches the public page.
+
+The page's "Sample MIDI files" links resolve only once published. Running the
+simulator locally they will 404 — generate them yourself with
+`python3 tools/song_to_midi.py`.
+
 ## Face specification
 
 The expressive layer is **part of the spec, not decoration** — it carries the
@@ -122,6 +148,7 @@ make that rule followable rather than aspirational. Two checks back it up:
 ```sh
 c++ -std=c++17 -I src tools/parity_check.cpp -o /tmp/parity && /tmp/parity
 node tools/check_song_parity.js
+python3 tools/song_to_midi.py --out /tmp/midi && python3 tools/verify_midi.py /tmp/midi/*.mid
 ```
 
 The first compiles the firmware's vowel math on the host — `formant_math.h` is
@@ -155,6 +182,11 @@ python3 tools/song_to_midi.py songs/ode_to_joy.json --out /tmp
 Standard library only — nothing to install. Notes land on channels 1/2/3 per
 voice, with CC1 and CC3 written just before each note-on so the firmware's
 glide latch picks them up.
+
+`tools/verify_midi.py` reads the output back with an independent parser — not
+the writer's code, so a writer bug cannot hide — and checks the header, chunk
+lengths, tempo against `quarterMs`, note-on/note-off balance, per-channel note
+counts against the JSON, and that CC1 and CC3 precede every note-on.
 
 ## Build and flash
 

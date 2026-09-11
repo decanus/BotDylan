@@ -101,10 +101,27 @@
   <hr class="rule">
 
   <p class="hint" id="midiStatus">Web MIDI: checking…</p>
+
+  <hr class="rule">
+
+  <p class="hint"><strong>Sample MIDI files</strong></p>
+  <p class="foot" style="text-align:center">
+    <a href="midi/amazing_grace.mid" download>Amazing Grace</a> &middot;
+    <a href="midi/ode_to_joy.mid" download>Ode to Joy</a> &middot;
+    <a href="midi/house_of_the_rising_sun.mid" download>House of the Rising Sun</a><br>
+    Channels 1/2/3 are soprano, alto and bass; CC1 sets the vowel, CC3 the glide
+    onset and CC4 the vibrato rate. <span class="faint">(Links resolve on the
+    published page; running from a local file they will 404 — generate them with
+    <code>python3 tools/song_to_midi.py</code>.)</span>
+  </p>
+
   <p class="foot">
     Channel map mirrors the planned firmware: ch 1 soprano, ch 2 alto, ch 3 bass; other channels play the soprano.
     CC1 vowel morph, CC4 vibrato rate, pitch bend &plusmn;2 semitones. Articulation is by formant glides only — no
     consonant noise (narrow-band bursts ring like beeps through resonant filters; see NOTES.md).
+  </p>
+  <p class="foot" style="text-align:center">
+    <a href="https://github.com/decanus/BotDylan">github.com/decanus/BotDylan</a>
   </p>
 </main>
 

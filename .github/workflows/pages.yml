@@ -1,0 +1,66 @@
+# Publish the simulator to GitHub Pages, with generated sample MIDI files.
+#
+# The simulator is served as-is: index.html is a COPY of tools/simulator.html,
+# never a build product, so the page keeps working from file:// and there is no
+# second copy of it in the repo to drift out of parity.
+#
+# The MIDI files are generated here rather than committed. They are derived
+# entirely from songs/*.json, and a committed derivative is exactly the kind of
+# duplicate the parity rule exists to prevent.
+#
+# ONE MANUAL STEP, once: repo Settings -> Pages -> Source: "GitHub Actions".
+
+name: Deploy simulator to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish rather than stacking; newer pushes supersede.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Both checks gate the deploy: a drifted song or a malformed MIDI file
+      # should never reach the public page.
+      - name: Check songs against the simulator's embedded copies
+        run: node tools/check_song_parity.js
+
+      - name: Stage the site
+        run: |
+          mkdir -p _site/midi
+          cp tools/simulator.html _site/index.html
+          python3 tools/song_to_midi.py --out _site/midi
+
+      - name: Verify the generated MIDI files
+        run: python3 tools/verify_midi.py _site/midi/*.mid
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
