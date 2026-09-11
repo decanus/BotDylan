@@ -560,5 +560,35 @@ The vibrato row is the fixed-vs-proportional question from session 2 arriving
 again by a different route. Mode 2 is therefore a slightly different voice from
 mode 1, which is a thing to rule on by ear, not by diff.
 
+## The m is a sine wave
+
+You said the m in "A-ma-zing" sounds weird. Measured, it is a pure tone:
+
+    H1   262 Hz    0.0 dB   <- the fundamental
+    H2   523 Hz  -31.0 dB
+    H3   785 Hz  -49.4 dB
+
+**99.9% of its energy from 100 Hz to 4 kHz is in the fundamental.** The
+recipe is `band_only(0,420)`, and at C4 that range catches f0 and nothing
+else — 1 of 6 harmonics. So the m is 90 ms of sine, and the vowel that
+follows holds **0.0%** of its energy at the fundamental. A beep that opens
+into a voice, which is exactly what it sounds like.
+
+The same holds at every pitch in the phrase: at G4 the m still passes only
+f0, and only because 392 Hz sits at the very edge of the 362 Hz band. A
+note much higher and the m would vanish entirely.
+
+Two related numbers:
+
+- **m is −3.5 dB relative to the vowel.** Rule 1 asks for −10 to −15. Its
+  amp is 0.8, against 0.11–0.30 for every fricative and plosive.
+- **m, n, w, l and r are not diction-scaled.** Every other recipe
+  multiplies by `dic`; these five do not. So **the diction-0 "vowels only"
+  control is not vowels only** — the nasals and approximants play through
+  it at full level. Worth knowing when A/Bing the pair: the control is
+  "no fricatives or plosives", not "no consonants".
+
+**_(to fill in)_** Which m sounds like an m: wider band, lower level, or both.
+
 **_(to fill in)_** Verdict on the reference render, and on whether mode 2
 should be aligned to the house sound or stay as the reference has it.
