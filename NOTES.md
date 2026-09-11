@@ -740,6 +740,34 @@ auditioned.
 listening test. Systematic coverage is what gates are for; a person needs a
 song.
 
+## eSpeak: replace the guesses, not the tuning
+
+First attempt at the eSpeak path sounded **worse**, and the reason was a design
+error of mine, not a limitation of the approach.
+
+I had the analysed envelope supply the whole syllable — consonants *and* vowel.
+That silently discarded `vowelCC`, which is the hand-choreographed column this
+file already calls a key expressiveness find: map vowels to the lyric's vowel
+skeleton, map openness to pitch height. The song asks for "sweet" at 127 and
+"the" at 38; eSpeak just says the word in its own voice. Measured on "ma", the
+harmonic profile moved from `0.0 −3.7 −9.3 −20.5` to `−1.9 −8.8 0.0 −1.8` — a
+different vowel colour entirely.
+
+The brief said envelopes replace the procedural **recipes**. The recipes are
+the consonant table. The vowels were never a guess — they were tuned by ear
+over two sessions.
+
+So the envelope path now takes **consonants from eSpeak and the vowel from the
+song**, and the measured vowel profile is identical to the recipe path's again.
+
+The general form of the mistake: when you replace guesswork with measurement,
+check what else was riding along in the thing you replaced. The consonant
+recipes and the vowel choreography lived in the same code path but had
+completely different provenance — one guessed, one earned.
+
+(The buzz did not come back, incidentally: H1 measured −1.9 dB on the bad
+version, not −46. Different defect.)
+
 ### Still open
 
 - **`f` fails the fricative gate** at −20.2 dB (2–8 kHz) and −23.0 dB in its own

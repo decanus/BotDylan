@@ -240,8 +240,16 @@ def load_envelopes(path):
     return out
 
 
-def build_note_envelope(entry, dur_s, smear_ms, release_above=2500):
-    """Assemble a note from an ANALYSED syllable rather than a recipe.
+def build_note_envelope(entry, vw, dur_s, smear_ms, release_above=2500,
+                       recipes="reference"):
+    """Assemble a note with ANALYSED CONSONANTS and the song's own vowel.
+
+    eSpeak replaces the consonant RECIPES, not the vowels. The vowel comes from
+    the song's vowelCC through the tuned table, because that column is hand
+    choreographed per note — "map vowels to the lyric's vowel skeleton" — and
+    eSpeak's own vowel colour is not what the song asked for. An earlier version
+    of this function used the analysed nucleus too, which silently discarded the
+    whole vowel choreography and sounded worse.
 
     Time-stretch policy: the consonant head and tail run at natural speed and
     only the vowel steady-state is stretched. Stretching a consonant is what
@@ -261,12 +269,11 @@ def build_note_envelope(entry, dur_s, smear_ms, release_above=2500):
     bands = np.zeros((NB, N)); voi = np.zeros(N)
     for i in range(head):
         bands[:, i] = src_b[:, i]; voi[i] = src_v[i]
-    if ne > ns:
-        for j in range(mid):                 # linear read through the nucleus
-            t = (ns + (ne-1-ns)*(j/max(1, mid-1))) if ne-1 > ns else ns
-            i0 = int(t); i1 = min(i0+1, src_b.shape[1]-1); f = t-i0
-            bands[:, head+j] = src_b[:, i0]*(1-f) + src_b[:, i1]*f
-            voi[head+j] = src_v[i0]*(1-f) + src_v[i1]*f
+    # The nucleus is the SONG's vowel, not eSpeak's.
+    vsp = vowel_spectrum(vw, VOWEL_FLOOR.get(recipes, 0.0))
+    for j in range(mid):
+        bands[:, head+j] = vsp*(1-0.1*(j/max(1, mid-1)))
+        voi[head+j] = 1.0
     for j in range(tail):
         src = ne + int(j*(src_b.shape[1]-ne)/max(1, tail))
         k = head+mid+j
@@ -311,8 +318,8 @@ def render(notes, quarter_ms, dic, smear_ms, gap_ms=REF_GAP_MS, release_above=25
             t += round(beats*quarter_ms); continue
         dur_s = (round(beats*quarter_ms)-gap_ms)/1000
         if envelopes and syl in envelopes:
-            bands, voi, N = build_note_envelope(envelopes[syl], dur_s, smear_ms,
-                                                release_above)
+            bands, voi, N = build_note_envelope(envelopes[syl], vw, dur_s, smear_ms,
+                                                release_above, recipes)
         else:
             bands, voi, N = build_note(vw,on,co,dur_s,dic,smear_ms,release_above,
                                        recipes, mtof(note))
