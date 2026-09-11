@@ -1,0 +1,20 @@
+# Optional extras for tools/audio_to_song.py.
+#
+# NOT needed for the default pipeline: --transcriber naive is pure standard
+# library and handles a clean monophonic hum, which is the intended input.
+#
+# Install into a throwaway virtualenv, never system-wide:
+#
+#   python3 -m venv .venv-audio
+#   .venv-audio/bin/pip install -r tools/requirements-audio.txt
+#   .venv-audio/bin/python tools/audio_to_song.py take.mp3 -o songs/new.json \
+#       --separate --transcriber basicpitch
+#
+# These pull in PyTorch and friends — expect a couple of GB. As of this
+# writing neither supports Python 3.14, so the venv needs a 3.11/3.12
+# interpreter:  python3.12 -m venv .venv-audio
+#
+# ffmpeg is also required for anything that is not a 16-bit WAV:  brew install ffmpeg
+
+demucs>=4.0.0
+basic-pitch>=0.4.0
