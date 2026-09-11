@@ -658,5 +658,38 @@ will produce the real phoneme set and these approximations disappear.
 
 `f` still has no song to appear in — neither lyric contains one.
 
+## The buzz: every note was missing its fundamental
+
+"There's like a buzz noise." There was, and it was not the consonants.
+
+The vowel spectrum is a 3-formant Gaussian projected onto the bands with sigma
+0.20 in log-frequency. F1 sits at 530–730 Hz. A fundamental an octave and a
+half below F1 is about **4.5 sigma out**, so the projection assigns it
+essentially nothing:
+
+    "ma"  (cc 80,  C4, f0 262 Hz)   band gain at f0 = 0.0005
+    "the" (cc 38,  A3, f0 220 Hz)   band gain at f0 = 0.0000
+    "grace" (cc 96, E4, f0 330 Hz)  band gain at f0 = 0.2233
+
+Measured in the render, H1 came out at **−46 dB** relative to the loudest
+harmonic. A harmonic stack with the root removed is the classic missing-
+fundamental timbre — thin, nasal, buzzy. That is the buzz.
+
+A real vocal tract is roughly **flat below F1**, not Gaussian-rolled-off: the
+tube's transfer function approaches a constant under the first resonance. The
+Gaussian is simply the wrong model down there. Flooring the sub-F1 bands at
+0.35 restores H1 to 0 dB.
+
+**Correction to an earlier reading of mine.** I first attributed this to rule
+5's alternating polarity, having measured H1 at −46.3 dB with it and −12.4 dB
+without. That was the wrong cause. A pure-tone sweep shows alternating polarity
+is *better* at almost every note fundamental (+7 to +11 dB at B3–E5). What it
+actually does is cancel the skirt leakage from the F1-region bands, which was
+the only thing partially restoring a fundamental the projection had already
+deleted. Two effects, and the projection is the primary one.
+
+**_(to fill in)_** Which floor: 0.35, 0.60, or something else. It changes every
+vowel at every pitch, so it is the largest-scope change proposed so far.
+
 **_(to fill in)_** Verdict on the reference render, and on whether mode 2
 should be aligned to the house sound or stay as the reference has it.
