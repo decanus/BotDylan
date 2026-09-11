@@ -12,6 +12,7 @@
 #include "voice/voice.h"
 
 extern AudioSynthNoiseWhite breath;      // one breath bed, shared by all
+extern AudioMixer4          voiceMix;    // the choir summed
 extern AudioOutputMQS       audioOut;
 
 extern Voice *const VOICES[];            // VOICE_COUNT entries

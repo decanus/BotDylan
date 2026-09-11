@@ -29,7 +29,10 @@ static bool anySounding() {
 void choirBegin() {
   AudioMemory(AUDIO_MEMORY_BLOCKS);
   breath.amplitude(BREATH_SOURCE_AMP);   // the shared bed every voice taps
-  for (int i = 0; i < VOICE_COUNT; i++) VOICES[i]->begin();
+  for (int i = 0; i < VOICE_COUNT; i++) {
+    VOICES[i]->begin();
+    voiceMix.gain(i, VOICE_DEFS[i].level);
+  }
 }
 
 void choirNoteOn(int channel, int note, int velocity) {

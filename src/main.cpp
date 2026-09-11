@@ -57,6 +57,7 @@
  */
 
 #include <Arduino.h>
+#include <Audio.h>   // AudioProcessorUsage / AudioMemoryUsage
 
 #include "config.h"
 #include "face/jaw.h"
@@ -65,9 +66,15 @@
 #include "voice/choir.h"
 
 elapsedMillis controlTimer;
+#if ENABLE_PERF_REPORT
+elapsedMillis perfTimer;
+#endif
 
 // ===== SETUP / LOOP ========================================================
 void setup() {
+#if ENABLE_PERF_REPORT
+  Serial.begin(115200);
+#endif
   choirBegin();   // audio memory, then every singer's nodes
   jawBegin();     // servo to its closed position
   midiBegin();    // USB device, DIN/TRS serial, USB host
@@ -82,4 +89,28 @@ void loop() {
     controlTimer = 0;
     jawUpdate(choirVowelPos());
   }
+
+#if ENABLE_PERF_REPORT
+  // Guarded by `if (Serial)` so a disconnected host can never block the loop.
+  if (perfTimer >= 2000) {
+    perfTimer = 0;
+    if (Serial) {
+      // Serial.print rather than printf: printf drags in about 25 kB of
+      // formatting machinery, for one diagnostic line. Tenths by hand.
+      int cpu    = (int)(AudioProcessorUsage() * 10.0f);
+      int cpuMax = (int)(AudioProcessorUsageMax() * 10.0f);
+      Serial.print("audio cpu ");
+      Serial.print(cpu / 10);    Serial.print('.'); Serial.print(cpu % 10);
+      Serial.print("% (max ");
+      Serial.print(cpuMax / 10); Serial.print('.'); Serial.print(cpuMax % 10);
+      Serial.print("%)  mem ");
+      Serial.print(AudioMemoryUsage());
+      Serial.print(" (max ");
+      Serial.print(AudioMemoryUsageMax());
+      Serial.print(" of ");
+      Serial.print(AUDIO_MEMORY_BLOCKS);
+      Serial.println(")");
+    }
+  }
+#endif
 }

@@ -26,10 +26,12 @@ struct VoiceDef {
   float level;          // gain into the output mixer
 };
 
-// Step-3 state: soprano alone, at the values the mono voice has always had.
-// Alto and bass join in the next commit.
+//              name       vibrato  detune  formant  mix
+//                              Hz    cents    scale  level
 const VoiceDef VOICE_DEFS[] = {
-  { "soprano", 5.2f, 0.0f, 1.00f, 1.00f },
+  { "soprano",     5.2f,   0.0f,   1.00f, 0.42f },
+  { "alto",        4.6f,  +4.0f,   0.93f, 0.30f },
+  { "bass",        4.3f,  -3.0f,   0.82f, 0.34f },
 };
 const int VOICE_COUNT = sizeof(VOICE_DEFS) / sizeof(VOICE_DEFS[0]);
 
@@ -86,4 +88,4 @@ const float JAW_IDLE_OPEN = 0.45f;
 // Blocks for the Audio Library. Each voice is waveform + LFO + 3 filters +
 // 2 mixers + envelope, so this has to grow with the choir. Watch
 // AudioMemoryUsageMax() after changing it.
-const int AUDIO_MEMORY_BLOCKS = 24;
+const int AUDIO_MEMORY_BLOCKS = 60;

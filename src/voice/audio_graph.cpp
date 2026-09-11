@@ -7,7 +7,7 @@
  *   -> three parallel bandpass filters -> formant mixer -> envelope
  *
  * Shared here:
- *   every voice's envelope -> MQS output
+ *   every voice's envelope -> voice mixer -> MQS output
  *
  * Everything is at global scope because the Audio Library requires static
  * storage, and in one translation unit so construction order is fixed.
@@ -16,12 +16,18 @@
 #include "voice/audio_graph.h"
 
 AudioSynthNoiseWhite breath;
+AudioMixer4          voiceMix;
 AudioOutputMQS       audioOut;
 
-// One singer for now. Each takes the shared breath bed, and the output node
-// plus the port it should land on.
-Voice voiceSoprano(VOICE_DEFS[0], breath, audioOut, 0);
+AudioConnection cMixToOut(voiceMix, 0, audioOut, 0);
 
-Voice *const VOICES[] = { &voiceSoprano };
+// Each singer takes the shared breath bed, the mixer, and its own port on it.
+// Named instances rather than an array: Voice is non-copyable, and this keeps
+// the port numbers visible next to the voice they belong to.
+Voice voiceSoprano(VOICE_DEFS[0], breath, voiceMix, 0);
+Voice voiceAlto   (VOICE_DEFS[1], breath, voiceMix, 1);
+Voice voiceBass   (VOICE_DEFS[2], breath, voiceMix, 2);
+
+Voice *const VOICES[] = { &voiceSoprano, &voiceAlto, &voiceBass };
 static_assert(sizeof(VOICES) / sizeof(VOICES[0]) == VOICE_COUNT,
               "VOICES[] must match VOICE_DEFS[]");

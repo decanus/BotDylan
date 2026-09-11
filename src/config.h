@@ -23,3 +23,8 @@
 const int JAW_PIN        = 3;
 const int JAW_CLOSED_DEG = 12;   // trim these two to your linkage
 const int JAW_OPEN_DEG   = 68;
+
+// ===== DIAGNOSTICS =========================================================
+// Prints audio CPU and memory headroom over USB serial every couple of
+// seconds, but only when a host is actually listening. Costs nothing when 0.
+#define ENABLE_PERF_REPORT 1
