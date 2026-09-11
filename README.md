@@ -1,4 +1,4 @@
-# Robot Voice
+# Bot Dylan
 
 A desktop robot that sings by itself. There is no vocoder and no human vocal
 input anywhere in the signal path: a band-limited sawtooth "glottis" runs
