@@ -114,7 +114,7 @@ def cons_frames(code, vw, dic):
     return seg
 
 
-def build_note(vw,on,co,dur_s,dic,smear_ms):
+def build_note(vw,on,co,dur_s,dic,smear_ms,release_above=2500):
     N = max(6, round(dur_s/FR))
     bands = np.zeros((NB,N)); voi = np.zeros(N); amp = np.zeros(N)
     f = 0
@@ -150,7 +150,7 @@ def build_note(vw,on,co,dur_s,dic,smear_ms):
     for i in range(N):
         tgt=bands[:,i]*amp[i]
         for b in range(NB):
-            a = a_att if (tgt[b]>=st[b] or BANDS[b]<=2500) else a_rel
+            a = a_att if (tgt[b]>=st[b] or BANDS[b]<=release_above) else a_rel
             st[b]=a*st[b]+(1-a)*tgt[b]
         bands[:,i]=st.copy()
     sv=0; voi_s=np.zeros(N); a_vup=np.exp(-10/5)
@@ -163,7 +163,7 @@ def build_note(vw,on,co,dur_s,dic,smear_ms):
     return bands, voi_s, N
 
 
-def render(notes, quarter_ms, dic, smear_ms, gap_ms=REF_GAP_MS):
+def render(notes, quarter_ms, dic, smear_ms, gap_ms=REF_GAP_MS, release_above=2500):
     """notes: [(midi, beats, vowelCC, velocity, onset, coda)], rests as midi=None."""
     total_ms = sum(round(b*quarter_ms) for _,b,_,_,_,_ in notes) + 600
     NF = round(total_ms/10)
@@ -173,7 +173,7 @@ def render(notes, quarter_ms, dic, smear_ms, gap_ms=REF_GAP_MS):
         if note is None:                       # a rest just advances the clock
             t += round(beats*quarter_ms); continue
         dur_s = (round(beats*quarter_ms)-gap_ms)/1000
-        bands, voi, N = build_note(vw,on,co,dur_s,dic,smear_ms)
+        bands, voi, N = build_note(vw,on,co,dur_s,dic,smear_ms,release_above)
         lvl = REF_LEVEL_BASE+REF_LEVEL_SCALE*(vel/127)
         off = round(t/10); n = min(N, NF-off)
         g_bands[:,off:off+n] = bands[:,:n]*lvl
@@ -271,6 +271,10 @@ def main(argv=None):
     ap.add_argument("--gap-ms", type=float, default=REF_GAP_MS,
                     help=f"note gap (default {REF_GAP_MS}, the reference value; "
                          "the songs themselves say 60)")
+    ap.add_argument("--release-above", type=float, default=2500.0,
+                    help="bands above this get rule 2's fast 4 ms release; below "
+                         "it they release at the smear time. Default 2500 is the "
+                         "reference. 0 gives every band the fast release.")
     ap.add_argument("--voice", default="sop", choices=["sop","alto","bass"])
     ap.add_argument("--first", type=int, default=None,
                     help="render only the first N notes")
@@ -288,7 +292,8 @@ def main(argv=None):
         ap.error("-o/--out is required unless --verify is given")
     song = json.loads(args.song.read_text())
     notes = notes_from_song(song, args.voice, args.first)
-    out = render(notes, song["quarterMs"], args.diction, args.smear, args.gap_ms)
+    out = render(notes, song["quarterMs"], args.diction, args.smear, args.gap_ms,
+                 args.release_above)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     wavfile.write(str(args.out), SR, (out*32767).astype(np.int16))
 
