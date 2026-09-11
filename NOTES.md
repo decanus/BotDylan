@@ -688,8 +688,18 @@ actually does is cancel the skirt leakage from the F1-region bands, which was
 the only thing partially restoring a fundamental the projection had already
 deleted. Two effects, and the projection is the primary one.
 
-**_(to fill in)_** Which floor: 0.35, 0.60, or something else. It changes every
-vowel at every pitch, so it is the largest-scope change proposed so far.
+Verdict: both 0.35 and 0.60 fixed it. Took **0.35** — the smaller departure
+from the reference model, and enough to put H1 back at 0 dB. `VOWEL_FLOOR` in
+`vocoder_render.py` carries it per recipe set, so 0.60 is one edit away.
+
+This reorders the whole hunt. We had been tuning consonants on top of a vowel
+that was missing its root — the same shape of mistake as tuning consonants on
+top of aliasing, which is the lesson this file already records. **Fix the
+thing underneath first.** Every consonant verdict taken before this floor
+landed was made against a broken vowel and may want revisiting.
+
+**_(to fill in)_** Whether the m, and the earlier release-threshold work, still
+read the same way now the fundamental is back.
 
 **_(to fill in)_** Verdict on the reference render, and on whether mode 2
 should be aligned to the house sound or stay as the reference has it.

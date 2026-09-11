@@ -65,12 +65,26 @@ BANK_Q          = 4.5
 def mtof(n): return 440*2**((n-69)/12)
 
 
-def vowel_spectrum(cc):
+# How much gain the bands BELOW F1 are floored at. The 3-formant Gaussian has
+# sigma 0.20 in log-frequency, so a fundamental an octave and a half under F1
+# is ~4.5 sigma out and gets essentially nothing — measured 0.0005 on "ma" and
+# 0.0000 on "the", with H1 landing 46 dB down in the render. That missing root
+# is the buzz. A real vocal tract is roughly FLAT below F1: the tube response
+# approaches a constant under the first resonance, it does not roll off.
+VOWEL_FLOOR = {"reference": 0.0, "v2": 0.35}
+
+
+def vowel_spectrum(cc, floor=0.0):
     pos = max(0, min(4, (cc/127)*4)); i = int(pos); j = min(i+1,4); t = pos-i
     F = [VOWELS[i]["f"][k]*(VOWELS[j]["f"][k]/VOWELS[i]["f"][k])**t for k in range(3)]
     G = [VOWELS[i]["g"][k]+(VOWELS[j]["g"][k]-VOWELS[i]["g"][k])*t for k in range(3)]
     s = np.array([sum(G[k]*np.exp(-0.5*(np.log(BANDS[b]/F[k])/0.20)**2) for k in range(3)) for b in range(NB)])
-    return s/s.max()
+    s = s/s.max()
+    if floor > 0:
+        for b in range(NB):
+            if BANDS[b] < F[0]:
+                s[b] = max(s[b], floor)
+    return s
 
 
 def tilt_hf(s):
@@ -102,6 +116,12 @@ CONSONANT_RANGE = {
 #
 # v2 changes, each from a listening verdict plus a coverage measurement:
 #
+#   vowel  sub-F1 bands floored at 0.35 (see VOWEL_FLOOR). Every note was
+#          missing its fundamental — H1 measured 46 dB down — which is the
+#          missing-fundamental timbre, heard as a buzz on every note of every
+#          song. This is the largest-scope change in the set: it moves every
+#          vowel at every pitch.
+#
 #   m, n  band 0-420 -> PITCH-RELATIVE 0.8*f0 .. 5*f0, amp 0.8 -> 0.45.
 #
 #         At 0-420 the nasal passed exactly one harmonic — the fundamental —
@@ -127,8 +147,9 @@ RECIPE_SETS = ("reference", "v2")
 
 def cons_frames(code, vw, dic, recipes="reference", f0=None):
     seg=[]
+    fl = VOWEL_FLOOR.get(recipes, 0.0)
     def push(spec,voi,ms,amp): seg.append((spec*amp, voi, max(1,round(ms/10))))
-    vsp = vowel_spectrum(vw)
+    vsp = vowel_spectrum(vw, fl)
     if code=="s": push(tilt_hf(band_only(3800,5600,1)),0,60,0.28*dic)
     elif code=="z": push(tilt_hf(band_only(3000,5600,1)),0.65,55,0.18*dic)
     elif code=="f": push(tilt_hf(band_only(1800,5000,0.7)),0,55,0.16*dic)
@@ -144,8 +165,8 @@ def cons_frames(code, vw, dic, recipes="reference", f0=None):
             push(band_only(0.8*f0, 5.0*f0, 1), 1, 90, 0.45)
         else:
             push(band_only(0,420,1),1,90,0.8)
-    elif code=="w": push(vowel_spectrum(0),1,90,0.9)
-    elif code in ("l","r"): push(vowel_spectrum(38),1,90,0.9)
+    elif code=="w": push(vowel_spectrum(0,fl),1,90,0.9)
+    elif code in ("l","r"): push(vowel_spectrum(38,fl),1,90,0.9)
     return seg
 
 
@@ -161,7 +182,7 @@ def build_note(vw,on,co,dur_s,dic,smear_ms,release_above=2500,recipes="reference
                 if f>=N: return
                 bands[:,f]=spec; voi[f]=v; amp[f]=1; f+=1
     if on: write(cons_frames(on,vw,dic,recipes,f0))
-    vsp = vowel_spectrum(vw)
+    vsp = vowel_spectrum(vw, VOWEL_FLOOR.get(recipes, 0.0))
     # Rule 3: one 10 ms frame at 15% vowel between an unvoiced onset and the vowel.
     if on in UNVOICED_ONSETS and f<N:
         bands[:,f]=vsp*0.15; voi[f]=1; amp[f]=1; f+=1
