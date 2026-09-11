@@ -768,6 +768,20 @@ completely different provenance — one guessed, one earned.
 (The buzz did not come back, incidentally: H1 measured −1.9 dB on the bad
 version, not −46. Different defect.)
 
+### Deliverable 3 verdict
+
+Passed. eSpeak supplies the consonants, the song supplies the vowel. What this
+buys, in order of how much it matters:
+
+1. **The phonemes that had no recipe at all** — p, v, th, sh, j, y, ng. "poor"
+   was being voiced as `b` (wrong: p is unvoiced) and every "th" was a `d`.
+   Those were not approximations, they were different sounds.
+2. **`f` stops being hand-tuned**, which was the one gate still failing.
+3. Consonants generally come from measurement rather than from a guess refined
+   by ear.
+
+Note what it does NOT buy: better vowels. Those were already earned.
+
 ### Still open
 
 - **`f` fails the fricative gate** at −20.2 dB (2–8 kHz) and −23.0 dB in its own
