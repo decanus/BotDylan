@@ -3,7 +3,7 @@
   "meter": "6/8",
   "quarterMs": 480,
   "gapMs": 60,
-  "source": "traditional American folk ballad, public domain. Plain block-chord harmony - NOT the Animals' 1964 arrangement. Transcribed by ear; units of the original transcription were eighths at q=240 ms, stored here as beats in quarters at quarterMs=480. Keep in parity with tools/simulator.html",
+  "source": "traditional American folk ballad, public domain. Plain block-chord harmony - NOT the Animals' 1964 arrangement. Transcribed by ear; units of the original transcription were eighths at q=240 ms, stored here as beats in quarters at quarterMs=480. Keep in parity with tools/simulator.html. onset/coda added for vocoder mode",
   "notes": [
     {
       "sop": 57,
@@ -13,7 +13,9 @@
       "vowelCC": 96,
       "syllable": "There",
       "velocity": 70,
-      "glide": ""
+      "glide": "",
+      "onset": "d",
+      "coda": ""
     },
     {
       "sop": 60,
@@ -23,7 +25,9 @@
       "vowelCC": 110,
       "syllable": "is",
       "velocity": 76,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": "z"
     },
     {
       "sop": 62,
@@ -33,7 +37,9 @@
       "vowelCC": 38,
       "syllable": "a",
       "velocity": 78,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 64,
@@ -43,7 +49,9 @@
       "vowelCC": 64,
       "syllable": "house",
       "velocity": 86,
-      "glide": ""
+      "glide": "",
+      "onset": "h",
+      "coda": "s"
     },
     {
       "sop": 64,
@@ -53,7 +61,9 @@
       "vowelCC": 56,
       "syllable": "down",
       "velocity": 80,
-      "glide": ""
+      "glide": "",
+      "onset": "d",
+      "coda": "n"
     },
     {
       "sop": 62,
@@ -63,7 +73,9 @@
       "vowelCC": 110,
       "syllable": "in",
       "velocity": 76,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": "n"
     },
     {
       "sop": 65,
@@ -73,7 +85,9 @@
       "vowelCC": 16,
       "syllable": "New",
       "velocity": 82,
-      "glide": ""
+      "glide": "",
+      "onset": "n",
+      "coda": ""
     },
     {
       "sop": 65,
@@ -83,7 +97,9 @@
       "vowelCC": 38,
       "syllable": "Or",
       "velocity": 84,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 69,
@@ -93,7 +109,9 @@
       "vowelCC": 120,
       "syllable": "leans",
       "velocity": 96,
-      "glide": "l"
+      "glide": "l",
+      "onset": "l",
+      "coda": "z"
     },
     {
       "sop": null,
@@ -103,7 +121,9 @@
       "vowelCC": 0,
       "syllable": "",
       "velocity": 0,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 57,
@@ -113,7 +133,9 @@
       "vowelCC": 96,
       "syllable": "They",
       "velocity": 70,
-      "glide": ""
+      "glide": "",
+      "onset": "d",
+      "coda": ""
     },
     {
       "sop": 60,
@@ -123,7 +145,9 @@
       "vowelCC": 70,
       "syllable": "call",
       "velocity": 80,
-      "glide": ""
+      "glide": "",
+      "onset": "k",
+      "coda": "l"
     },
     {
       "sop": 62,
@@ -133,7 +157,9 @@
       "vowelCC": 38,
       "syllable": "the",
       "velocity": 76,
-      "glide": ""
+      "glide": "",
+      "onset": "d",
+      "coda": ""
     },
     {
       "sop": 64,
@@ -143,7 +169,9 @@
       "vowelCC": 70,
       "syllable": "Ri",
       "velocity": 88,
-      "glide": ""
+      "glide": "",
+      "onset": "r",
+      "coda": ""
     },
     {
       "sop": 62,
@@ -153,7 +181,9 @@
       "vowelCC": 115,
       "syllable": "sing",
       "velocity": 84,
-      "glide": ""
+      "glide": "",
+      "onset": "s",
+      "coda": "n"
     },
     {
       "sop": 59,
@@ -163,7 +193,9 @@
       "vowelCC": 45,
       "syllable": "sun",
       "velocity": 82,
-      "glide": ""
+      "glide": "",
+      "onset": "s",
+      "coda": "n"
     },
     {
       "sop": null,
@@ -173,7 +205,9 @@
       "vowelCC": 0,
       "syllable": "",
       "velocity": 0,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 57,
@@ -183,7 +217,9 @@
       "vowelCC": 60,
       "syllable": "And",
       "velocity": 68,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": "d"
     },
     {
       "sop": 57,
@@ -193,7 +229,9 @@
       "vowelCC": 110,
       "syllable": "it's",
       "velocity": 68,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": "s"
     },
     {
       "sop": 60,
@@ -203,7 +241,9 @@
       "vowelCC": 96,
       "syllable": "been",
       "velocity": 78,
-      "glide": ""
+      "glide": "",
+      "onset": "b",
+      "coda": "n"
     },
     {
       "sop": 62,
@@ -213,7 +253,9 @@
       "vowelCC": 38,
       "syllable": "the",
       "velocity": 76,
-      "glide": ""
+      "glide": "",
+      "onset": "d",
+      "coda": ""
     },
     {
       "sop": 64,
@@ -223,7 +265,9 @@
       "vowelCC": 32,
       "syllable": "ru",
       "velocity": 84,
-      "glide": ""
+      "glide": "",
+      "onset": "r",
+      "coda": ""
     },
     {
       "sop": 64,
@@ -233,7 +277,9 @@
       "vowelCC": 110,
       "syllable": "in",
       "velocity": 80,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": "n"
     },
     {
       "sop": 65,
@@ -243,7 +289,9 @@
       "vowelCC": 96,
       "syllable": "ma",
       "velocity": 82,
-      "glide": ""
+      "glide": "",
+      "onset": "m",
+      "coda": ""
     },
     {
       "sop": 65,
@@ -253,7 +301,9 @@
       "vowelCC": 110,
       "syllable": "ny",
       "velocity": 80,
-      "glide": ""
+      "glide": "",
+      "onset": "n",
+      "coda": ""
     },
     {
       "sop": 65,
@@ -263,7 +313,9 @@
       "vowelCC": 38,
       "syllable": "a",
       "velocity": 78,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 69,
@@ -273,7 +325,9 @@
       "vowelCC": 38,
       "syllable": "poor",
       "velocity": 92,
-      "glide": "w"
+      "glide": "w",
+      "onset": "b",
+      "coda": ""
     },
     {
       "sop": 64,
@@ -283,7 +337,9 @@
       "vowelCC": 38,
       "syllable": "boy",
       "velocity": 84,
-      "glide": ""
+      "glide": "",
+      "onset": "b",
+      "coda": ""
     },
     {
       "sop": 60,
@@ -293,7 +349,9 @@
       "vowelCC": 60,
       "syllable": "And",
       "velocity": 76,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": "d"
     },
     {
       "sop": 64,
@@ -303,7 +361,9 @@
       "vowelCC": 70,
       "syllable": "God",
       "velocity": 86,
-      "glide": ""
+      "glide": "",
+      "onset": "g",
+      "coda": "d"
     },
     {
       "sop": 62,
@@ -313,7 +373,9 @@
       "vowelCC": 70,
       "syllable": "I",
       "velocity": 82,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": ""
     },
     {
       "sop": 60,
@@ -323,7 +385,9 @@
       "vowelCC": 32,
       "syllable": "know",
       "velocity": 78,
-      "glide": ""
+      "glide": "",
+      "onset": "n",
+      "coda": ""
     },
     {
       "sop": 59,
@@ -333,7 +397,9 @@
       "vowelCC": 64,
       "syllable": "I'm",
       "velocity": 76,
-      "glide": ""
+      "glide": "",
+      "onset": "",
+      "coda": "m"
     },
     {
       "sop": 57,
@@ -343,7 +409,9 @@
       "vowelCC": 40,
       "syllable": "one",
       "velocity": 80,
-      "glide": ""
+      "glide": "",
+      "onset": "w",
+      "coda": "n"
     }
   ]
 }

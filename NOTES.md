@@ -631,5 +631,32 @@ happens to contain.
 
 **_(to fill in)_** `b` at C5 and above. Flagged, not retuned.
 
+## Judge it on songs, not on drills
+
+The consonant matrix — 15 consonants x 4 pitches, played as isolated syllables
+— turned out to be useless as a listening test. Sixty context-free
+consonant-vowel pairs is an engineering artifact, not something an ear can form
+an opinion about. It stays in `tools/` because it is useful for *measuring*,
+but the systematic sweep is gate 6's job, not a person's.
+
+The lesson: **give the ear music, and let the gates do the coverage.** When a
+consonant has never been heard, the fix is to write a song that uses it, not to
+drill it. House of the Rising Sun was coded for exactly that — it carries `b`
+in "been / poor / boy" and `w` in "one", both of which had never been rendered,
+plus a minor key and a different pitch range.
+
+### Gaps in the recipe table
+
+Coding a second lyric exposed which English consonants have no recipe at all:
+
+    p  v  th  sh  j  y  ng
+
+`poor` is currently voiced as `b`, which is wrong — `p` is unvoiced and `b` is
+voiced — and "There / They / the" all use `d` for `th`. Those are stand-ins,
+not transcriptions. Worth knowing before the eSpeak path lands, since eSpeak
+will produce the real phoneme set and these approximations disappear.
+
+`f` still has no song to appear in — neither lyric contains one.
+
 **_(to fill in)_** Verdict on the reference render, and on whether mode 2
 should be aligned to the house sound or stay as the reference has it.
