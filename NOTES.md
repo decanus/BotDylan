@@ -709,9 +709,53 @@ variant faked it by adding a band at the fundamental; it measured identically
 to plain low-voicing and was not preferred. If voiced fricatives ever need to
 be better than this, per-band voicing is the change, and it is not a small one.
 
-**_(to fill in)_** Whether the m, and the earlier release-threshold work, still
-read the same way now the fundamental is back. Re-rendered for comparison as
-`m_recheck_OLDnasal` / `m_recheck_NEWnasal`.
+## The verdict log
+
+Deliverables 1 and 2 passed the listening gate with recipe set **v2**. The
+original experiment found five defects by ear and then measured them; this
+round found four more the same way, and the log is the point.
+
+| # | Heard as | Measured | Change |
+|---|---|---|---|
+| 1 | "the M sounds weird" | nasal was 99.9% fundamental — a sine. 1 harmonic at every pitch, 0 above C5 | m/n band → pitch-relative `0.8·f0 .. 5·f0` |
+| 2 | "too electronic", "a buzz" on the z | voicing 0.65 = 65% sawtooth. Flatness 0.077 vs 0.155 for the `s` beside it | z voicing → 0.25 |
+| 3 | "there's like a buzz noise" | **every note missing its fundamental.** H1 46 dB down; band gain at f0 was 0.0005 on "ma", 0.0000 on "the" | sub-F1 bands floored at 0.35 |
+| 4 | "the matrix doesn't help" | — | judge on songs; coverage is gate 6's job |
+
+Three things this round taught that outlast the specific fixes:
+
+**Fix the thing underneath first.** The missing fundamental was under every
+consonant verdict given before it. That is the same mistake as tuning
+consonants on top of aliasing, which this file already records from the
+original experiment — and it happened again anyway, because a broken layer
+does not announce itself, it just makes everything above it sound slightly
+wrong.
+
+**A diagnosis can generalise while its fix does not.** The nasal defect was
+structural and present at every pitch; the first fix for it was tuned to the
+six notes we happened to be listening to. Coverage has to be measured, not
+auditioned.
+
+**Give the ear music, not drills.** The 15×4 consonant matrix was unusable as a
+listening test. Systematic coverage is what gates are for; a person needs a
+song.
+
+### Still open
+
+- **`f` fails the fricative gate** at −20.2 dB (2–8 kHz) and −23.0 dB in its own
+  band, against a −8 to −18 window. It is the only recipe stacking a sub-unity
+  band gain (0.7) with the lowest amplitude (0.16). Neither lyric contains an
+  `f`, so it has never been heard.
+- **`k` reads out of spec but is not.** Its band sits mostly below the 2–8 kHz
+  measurement window; in its own range it is −15.8 dB. The rule's single window
+  does not suit a plosive centred at 1.2–2.4 kHz.
+- **`b` is sine-like at 5 of 8 pitches** and silent at three. Flagged, not
+  retuned — it is a 20 ms transient, not a 90 ms sustain.
+- **No recipes for p, v, th, sh, j, y, ng.** `poor` is currently voiced as `b`,
+  which is wrong, and th is `d` throughout. These disappear with eSpeak.
+- **The m re-check** (`m_recheck_OLDnasal` vs `NEWnasal`) was never separately
+  ruled on. The new nasal passes gate 6 and sounds right, so it stays, but
+  whether the old one would now be acceptable on the fixed vowel is unanswered.
 
 **_(to fill in)_** Verdict on the reference render, and on whether mode 2
 should be aligned to the house sound or stay as the reference has it.
