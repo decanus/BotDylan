@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robot voice simulator</title>
+<style>
+  :root{
+    --panel:#ECEAE4; --page:#D6D3CA; --well:#F7F6F2;
+    --ink:#22211E; --faint:#6E6B63; --line:#C4C1B8;
+    --accent:#E4581B; --accent-dark:#A93B0E;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:32px 16px; background:var(--page); color:var(--ink);
+    font-family:system-ui, -apple-system, "Segoe UI", sans-serif; font-size:15px; line-height:1.5;
+  }
+  .panel{
+    max-width:640px; margin:0 auto; background:var(--panel);
+    border:1px solid var(--line); border-radius:10px; padding:28px 28px 20px;
+  }
+  h1{font-size:19px; font-weight:600; margin:0; letter-spacing:0.01em;}
+  .sub{color:var(--faint); font-size:13px; margin:2px 0 20px;}
+  .rule{border:none; border-top:1px solid var(--line); margin:20px -28px;}
+  .well{
+    background:var(--well); border:1px solid var(--line); border-radius:8px;
+    padding:14px; display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .led{width:8px; height:8px; border-radius:50%; background:var(--line); align-self:flex-end;}
+  .led.on{background:var(--accent);}
+  #syllable{font-size:17px; font-weight:600; min-height:24px;}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center; margin:14px 0 0;}
+  button{
+    font:inherit; font-size:14px; padding:8px 14px; border-radius:6px;
+    border:1px solid var(--ink); background:var(--well); color:var(--ink); cursor:pointer;
+  }
+  button:active{transform:translateY(1px);}
+  button.primary{background:var(--accent); border-color:var(--accent-dark); color:#fff; font-weight:600;}
+  .ctrl-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px 24px; margin-top:14px;}
+  .ctrl{display:flex; align-items:center; gap:10px; font-size:13px;}
+  .ctrl label{flex:0 0 108px; color:var(--faint);}
+  .ctrl input[type=range]{flex:1; accent-color:var(--accent);}
+  .ctrl output{flex:0 0 52px; text-align:right; font-variant-numeric:tabular-nums; font-weight:600;}
+  .voices{display:flex; gap:18px; justify-content:center; font-size:13px; margin-top:14px;}
+  .voices label{display:flex; gap:6px; align-items:center;}
+  .keys{display:flex; gap:4px; justify-content:center; flex-wrap:wrap; margin-top:14px;}
+  .keys button{min-width:50px; padding:14px 6px;}
+  .hint{color:var(--faint); font-size:12.5px; text-align:center; margin:10px 0 0;}
+  .foot{color:var(--faint); font-size:12px; margin:18px 0 0;}
+  @media (prefers-reduced-motion:no-preference){
+    button{transition:transform 60ms ease;}
+  }
+</style>
+</head>
+<body>
+<main class="panel">
+  <h1>Robot voice simulator</h1>
+  <p class="sub">Browser twin of the Teensy formant choir. Keep constants in parity with src/voice/.</p>
+
+  <div class="well" aria-label="Robot face display">
+    <span class="led" id="led"></span>
+    <svg id="face" viewBox="0 0 200 130" width="210" height="137" role="img" aria-label="Robot face">
+      <rect x="20" y="8" width="160" height="114" rx="16" fill="#fff" stroke="#C4C1B8"/>
+      <circle cx="70" cy="50" r="22" fill="#F1EFE9" stroke="#C4C1B8"/>
+      <circle cx="130" cy="50" r="22" fill="#F1EFE9" stroke="#C4C1B8"/>
+      <circle id="pupilL" cx="70" cy="50" r="9" fill="#22211E"/>
+      <circle id="pupilR" cx="130" cy="50" r="9" fill="#22211E"/>
+      <ellipse id="mouth" cx="100" cy="95" rx="20" ry="2.5" fill="#22211E"/>
+    </svg>
+    <span id="syllable">&nbsp;</span>
+  </div>
+
+  <div class="row">
+    <button id="power" class="primary">Start audio</button>
+    <button id="playAG">Sing Amazing Grace</button>
+    <button id="playOJ">Sing Ode to Joy</button>
+    <button id="stopBtn">Stop</button>
+  </div>
+
+  <div class="voices">
+    <label><input type="checkbox" id="vSop" checked> Soprano</label>
+    <label><input type="checkbox" id="vAlt" checked> Alto</label>
+    <label><input type="checkbox" id="vBas" checked> Bass</label>
+  </div>
+
+  <hr class="rule">
+
+  <div class="ctrl-grid">
+    <div class="ctrl"><label for="vowel">Vowel (CC1)</label><input type="range" id="vowel" min="0" max="127" value="64"><output id="vowelOut">ah</output></div>
+    <div class="ctrl"><label for="vibRate">Vibrato rate (CC4)</label><input type="range" id="vibRate" min="20" max="90" value="50"><output id="vibOut">5.0 Hz</output></div>
+    <div class="ctrl"><label for="vibDepth">Vibrato depth</label><input type="range" id="vibDepth" min="0" max="100" value="45"><output id="depthOut">45</output></div>
+    <div class="ctrl"><label for="master">Level</label><input type="range" id="master" min="0" max="100" value="55"><output id="masterOut">55</output></div>
+  </div>
+
+  <div class="keys" id="keys"></div>
+  <p class="hint">Hold to sing on the soprano. Computer keys A S D F G H J K also play. Vowel slider works while held.</p>
+
+  <hr class="rule">
+
+  <p class="hint" id="midiStatus">Web MIDI: checking…</p>
+  <p class="foot">
+    Channel map mirrors the planned firmware: ch 1 soprano, ch 2 alto, ch 3 bass; other channels play the soprano.
+    CC1 vowel morph, CC4 vibrato rate, pitch bend &plusmn;2 semitones. Articulation is by formant glides only — no
+    consonant noise (narrow-band bursts ring like beeps through resonant filters; see NOTES.md).
+  </p>
+</main>
+
+<script>
+"use strict";
+/* House sound constants — keep in parity with firmware src/voice/ */
+const VOWELS=[
+ {n:"oo",f:[300,870,2240],g:[1,.35,.12]},
+ {n:"oh",f:[570,840,2410],g:[1,.45,.15]},
+ {n:"ah",f:[730,1090,2440],g:[1,.6,.2]},
+ {n:"eh",f:[530,1840,2480],g:[1,.5,.22]},
+ {n:"ee",f:[270,2290,3010],g:[1,.3,.28]}];
+const VDEF=[
+ {vib:5.0, det:0,  fshift:1.00, vol:0.42},   // soprano
+ {vib:4.6, det:4,  fshift:0.93, vol:0.30},   // alto
+ {vib:4.3, det:-3, fshift:0.82, vol:0.34}];  // bass
+const ENV={attackTc:0.05, releaseTc:0.24, glideMs:110, portamentoTc:0.025, vowelTc:0.035};
+const JAW={openRate:0.28, closeRate:0.11};
+
+let ctx=null, master=null, voices=[], timers=[], singing=false;
+let jawA=0, jawT=0, vowelPos=2, anyOn=false, vibDepthScale=1;
+
+const $=id=>document.getElementById(id);
+const mtof=n=>440*Math.pow(2,(n-69)/12);
+
+function makeVoice(def){
+ const v={def};
+ v.env=ctx.createGain(); v.env.gain.value=0; v.env.connect(master);
+ v.out=ctx.createGain(); v.out.gain.value=def.vol; v.out.connect(v.env);
+ v.osc=ctx.createOscillator(); v.osc.type="sawtooth"; v.osc.frequency.value=200;
+ v.osc.detune.value=def.det;
+ v.vib=ctx.createOscillator(); v.vib.type="sine"; v.vib.frequency.value=def.vib;
+ v.vibG=ctx.createGain(); v.vibG.gain.value=4.5;
+ v.vib.connect(v.vibG); v.vibG.connect(v.osc.frequency);
+ v.f=[]; v.fg=[];
+ for(let k=0;k<3;k++){
+  const bp=ctx.createBiquadFilter(); bp.type="bandpass"; bp.Q.value=k===0?4:5;
+  const g=ctx.createGain();
+  v.osc.connect(bp); bp.connect(g); g.connect(v.out);
+  v.f.push(bp); v.fg.push(g);
+ }
+ v.osc.start(); v.vib.start();
+ v.bend=0;
+ return v;
+}
+
+function boot(){
+ if(ctx) return;
+ ctx=new (window.AudioContext||window.webkitAudioContext)();
+ master=ctx.createGain(); master.gain.value=0.55; master.connect(ctx.destination);
+ VDEF.forEach(d=>voices.push(makeVoice(d)));
+ applyVowel();
+ $("power").textContent="Audio running";
+ $("led").classList.add("on");
+ requestAnimationFrame(tick);
+ initMIDI();
+}
+
+function applyVowel(){
+ const pos=Math.max(0,Math.min(4,vowelPos));
+ const i=Math.floor(pos), j=Math.min(i+1,4), t=pos-i;
+ for(const v of voices){
+  for(let k=0;k<3;k++){
+   const fr=VOWELS[i].f[k]*Math.pow(VOWELS[j].f[k]/VOWELS[i].f[k],t)*v.def.fshift;
+   const gn=VOWELS[i].g[k]+(VOWELS[j].g[k]-VOWELS[i].g[k])*t;
+   v.f[k].frequency.setTargetAtTime(fr,ctx.currentTime,ENV.vowelTc);
+   v.fg[k].gain.setTargetAtTime(gn*0.9,ctx.currentTime,ENV.vowelTc);
+  }
+ }
+ $("vowelOut").textContent=VOWELS[Math.round(pos)].n;
+}
+
+const enabled=idx=>[$("vSop").checked,$("vAlt").checked,$("vBas").checked][idx];
+
+function voiceOn(idx,note,vel){
+ const vc=voices[idx]; if(!vc||!enabled(idx)) return;
+ anyOn=true;
+ const v=(vel||100)/127;
+ vc.osc.frequency.cancelScheduledValues(ctx.currentTime);
+ vc.osc.frequency.setTargetAtTime(mtof(note+vc.bend),ctx.currentTime,ENV.portamentoTc);
+ vc.note=note;
+ vc.env.gain.cancelScheduledValues(ctx.currentTime);
+ vc.env.gain.setTargetAtTime(0.22+0.5*v,ctx.currentTime,ENV.attackTc);
+ if(idx===0) jawT=0.35+0.65*v; else if(jawT===0) jawT=0.45;
+}
+function voiceOff(idx){
+ const vc=voices[idx]; if(!vc) return;
+ vc.env.gain.setTargetAtTime(0,ctx.currentTime,ENV.releaseTc);
+ vc.note=undefined;
+ if(!voices.some(v=>v.note!==undefined)){ anyOn=false; jawT=0; }
+}
+function allOff(){ voices.forEach((_,i)=>voiceOff(i)); }
+
+function tick(){
+ const vowelOpen=1-0.35*Math.abs(vowelPos-2)/2;
+ const target=jawT*vowelOpen;
+ jawA+=(target-jawA)*(target>jawA?JAW.openRate:JAW.closeRate);
+ $("mouth").setAttribute("ry",(2.5+22*jawA).toFixed(1));
+ const wob=anyOn?Math.sin(Date.now()/380)*2:0;
+ $("pupilL").setAttribute("cx",(70+wob).toFixed(1));
+ $("pupilR").setAttribute("cx",(130+wob).toFixed(1));
+ requestAnimationFrame(tick);
+}
+
+/* ---- Songs ------------------------------------------------------------ */
+/* Amazing Grace: [sop, alto, bass, beats, vowelCC, syllable, velocity, glide]
+   glide: "w" starts at oo, "l" starts near oh, "" direct. q=560ms, 3/4.   */
+const AMAZING_GRACE={q:560, notes:[
+ [55,null,null,1,64,"A",72,""],
+ [60,52,36,2,80,"ma",84,""],[64,55,36,1,120,"zing",80,""],
+ [64,55,36,2,96,"grace",88,"l"],[62,59,31,1,64,"how",78,""],
+ [60,57,41,2,127,"sweet",84,"w"],[57,53,41,1,38,"the",74,""],
+ [55,52,36,3,58,"sound",78,""],
+ [55,52,36,1,58,"that",74,""],
+ [60,52,36,2,96,"saved",86,""],[64,55,36,1,32,"a",76,""],
+ [64,55,36,2,96,"wretch",88,"l"],[62,59,31,1,70,"like",80,"l"],
+ [67,59,31,3,127,"me",104,""],
+ [67,64,36,1,70,"I",96,""],
+ [64,55,36,2,30,"once",84,"w"],[62,59,31,1,36,"was",78,"w"],
+ [60,57,41,2,42,"lost",80,"l"],[57,53,41,1,34,"but",72,""],
+ [60,52,36,2,64,"now",82,""],[62,59,31,1,70,"am",84,""],
+ [64,55,36,3,60,"found",92,""],
+ [64,55,36,1,36,"was",78,"w"],
+ [60,57,33,2,74,"blind",86,"l"],[57,53,33,1,34,"but",72,""],
+ [60,52,31,2,64,"now",80,""],[62,59,31,1,70,"I",82,""],
+ [60,52,24,3,127,"see",88,""]
+]};
+/* Ode to Joy, soprano solo. q=480ms, 4/4. Vowel follows pitch height. */
+const ODE_VMAP={60:16,62:38,64:56,65:72,67:88};
+const ODE_MEL=[[64,1],[64,1],[65,1],[67,1],[67,1],[65,1],[64,1],[62,1],[60,1],[60,1],[62,1],[64,1],[64,1.5],[62,.5],[62,2],
+ [64,1],[64,1],[65,1],[67,1],[67,1],[65,1],[64,1],[62,1],[60,1],[60,1],[62,1],[64,1],[62,1.5],[60,.5],[60,2]];
+const ODE_TO_JOY={q:480, notes:ODE_MEL.map(m=>[m[0],null,null,m[1],ODE_VMAP[m[0]],"",76+(m[0]-60)*4,""])};
+
+function stopSong(){
+ timers.forEach(clearTimeout); timers=[]; singing=false;
+ if(ctx) allOff();
+ $("syllable").innerHTML="&nbsp;";
+}
+
+function playSong(song){
+ boot(); stopSong(); singing=true;
+ let t=0;
+ for(const m of song.notes){
+  const [s,a,b,beats,vw,syl,vel,gl]=m;
+  const dur=Math.round(beats*song.q)-60, at=t;
+  timers.push(setTimeout(()=>{
+   const vTarget=(vw/127)*4;
+   vowelPos = gl==="w"?0 : gl==="l"?1.2 : vTarget;
+   applyVowel();
+   if(s!==null)voiceOn(0,s,vel); if(a!==null)voiceOn(1,a,vel); if(b!==null)voiceOn(2,b,vel);
+   if(gl) timers.push(setTimeout(()=>{vowelPos=vTarget; applyVowel();},ENV.glideMs));
+   $("syllable").textContent=syl||"\u00A0";
+  },at));
+  timers.push(setTimeout(allOff,at+dur));
+  t+=Math.round(beats*song.q);
+ }
+ timers.push(setTimeout(()=>{singing=false; $("syllable").innerHTML="&nbsp;";},t+400));
+}
+
+/* ---- Manual keyboard --------------------------------------------------- */
+const NOTES=[["C3",48],["D3",50],["E3",52],["F3",53],["G3",55],["A3",57],["B3",59],["C4",60]];
+const KEYMAP={a:48,s:50,d:52,f:53,g:55,h:57,j:59,k:60};
+for(const [name,n] of NOTES){
+ const b=document.createElement("button");
+ b.textContent=name;
+ b.addEventListener("pointerdown",e=>{e.preventDefault(); boot(); voiceOn(0,n,100);});
+ b.addEventListener("pointerup",()=>voiceOff(0));
+ b.addEventListener("pointerleave",()=>voiceOff(0));
+ $("keys").appendChild(b);
+}
+const held={};
+document.addEventListener("keydown",e=>{
+ const n=KEYMAP[e.key]; if(n===undefined||held[e.key])return;
+ held[e.key]=true; boot(); voiceOn(0,n,100);
+});
+document.addEventListener("keyup",e=>{
+ const n=KEYMAP[e.key]; if(n===undefined)return;
+ held[e.key]=false; voiceOff(0);
+});
+
+/* ---- Web MIDI: channel-per-voice preview of the firmware scheme -------- */
+function initMIDI(){
+ if(!navigator.requestMIDIAccess){ $("midiStatus").textContent="Web MIDI: not supported in this browser (Chrome and Edge work)."; return; }
+ navigator.requestMIDIAccess().then(access=>{
+  const label=()=>{
+   const names=[...access.inputs.values()].map(i=>i.name);
+   $("midiStatus").textContent=names.length?("Web MIDI in: "+names.join(", ")):"Web MIDI: no device connected — plug in a controller.";
+  };
+  const hook=()=>{ for(const input of access.inputs.values()) input.onmidimessage=onMIDI; label(); };
+  access.onstatechange=hook; hook();
+ },()=>{ $("midiStatus").textContent="Web MIDI: permission denied."; });
+}
+function onMIDI(e){
+ const [st,d1,d2]=e.data;
+ const type=st&0xF0, ch=st&0x0F;                 // ch 0-based: 0=ch1
+ const idx=ch<=2?ch:0;                            // ch1 sop, ch2 alt, ch3 bas, else sop
+ if(type===0x90&&d2>0){ boot(); voiceOn(idx,d1,d2); }
+ else if(type===0x80||(type===0x90&&d2===0)){ voiceOff(idx); }
+ else if(type===0xB0){
+  if(d1===1){ vowelPos=(d2/127)*4; applyVowel(); $("vowel").value=d2; }
+  if(d1===4){ setVibRate(2+(d2/127)*7); }
+  if(d1===123){ allOff(); }
+ }
+ else if(type===0xE0){
+  const bend=(((d2<<7)|d1)-8192)/8192*2;
+  const vc=voices[idx];
+  if(vc){ vc.bend=bend; if(vc.note!==undefined) vc.osc.frequency.setTargetAtTime(mtof(vc.note+bend),ctx.currentTime,0.01); }
+ }
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+function setVibRate(hz){
+ $("vibOut").textContent=hz.toFixed(1)+" Hz";
+ $("vibRate").value=Math.round(hz*10);
+ if(!ctx)return;
+ voices.forEach((v,i)=>v.vib.frequency.setTargetAtTime(hz*(VDEF[i].vib/VDEF[0].vib),ctx.currentTime,0.05));
+}
+$("vowel").addEventListener("input",e=>{ vowelPos=(e.target.value/127)*4; if(ctx)applyVowel(); else $("vowelOut").textContent=VOWELS[Math.round(vowelPos)].n; });
+$("vibRate").addEventListener("input",e=>setVibRate(e.target.value/10));
+$("vibDepth").addEventListener("input",e=>{
+ $("depthOut").textContent=e.target.value;
+ if(ctx)voices.forEach(v=>v.vibG.gain.setTargetAtTime((e.target.value/100)*10,ctx.currentTime,0.05));
+});
+$("master").addEventListener("input",e=>{
+ $("masterOut").textContent=e.target.value;
+ if(master)master.gain.setTargetAtTime(e.target.value/100,ctx.currentTime,0.05);
+});
+$("power").addEventListener("click",boot);
+$("playAG").addEventListener("click",()=>playSong(AMAZING_GRACE));
+$("playOJ").addEventListener("click",()=>playSong(ODE_TO_JOY));
+$("stopBtn").addEventListener("click",stopSong);
+</script>
+</body>
+</html>
