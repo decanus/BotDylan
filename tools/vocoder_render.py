@@ -122,6 +122,8 @@ CONSONANT_RANGE = {
 #          song. This is the largest-scope change in the set: it moves every
 #          vowel at every pitch.
 #
+#   z     voicing 0.65 -> 0.25, so frication dominates instead of the carrier.
+#
 #   m, n  band 0-420 -> PITCH-RELATIVE 0.8*f0 .. 5*f0, amp 0.8 -> 0.45.
 #
 #         At 0-420 the nasal passed exactly one harmonic — the fundamental —
@@ -151,7 +153,14 @@ def cons_frames(code, vw, dic, recipes="reference", f0=None):
     def push(spec,voi,ms,amp): seg.append((spec*amp, voi, max(1,round(ms/10))))
     vsp = vowel_spectrum(vw, fl)
     if code=="s": push(tilt_hf(band_only(3800,5600,1)),0,60,0.28*dic)
-    elif code=="z": push(tilt_hf(band_only(3000,5600,1)),0.65,55,0.18*dic)
+    elif code=="z":
+        # v2 drops the voicing from 0.65 to 0.25. At 0.65 the excitation is 65%
+        # sawtooth, so the 3-5.6 kHz band carried CARRIER HARMONICS rather than
+        # frication — measured spectral flatness 0.077 against 0.155 for s, i.e.
+        # twice as tonal as the fricative it sits beside. It buzzed. At 0.25 the
+        # noise dominates that band (0.313) and it reads as a z.
+        push(tilt_hf(band_only(3000,5600,1)),
+             0.25 if recipes=="v2" else 0.65, 55, 0.18*dic)
     elif code=="f": push(tilt_hf(band_only(1800,5000,0.7)),0,55,0.16*dic)
     elif code=="t": push(SIL,1,30,1); push(tilt_hf(band_only(2600,5200,1)),0,20,0.30*dic)
     elif code=="k": push(SIL,1,30,1); push(band_only(1200,2400,1),0,20,0.30*dic)

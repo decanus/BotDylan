@@ -698,8 +698,20 @@ top of aliasing, which is the lesson this file already records. **Fix the
 thing underneath first.** Every consonant verdict taken before this floor
 landed was made against a broken vowel and may want revisiting.
 
+Verdict on the z: **voicing 0.25, no voice bar.** Flatness goes 0.077 -> 0.313,
+against 0.155 for the `s` beside it, so it stops being twice as tonal as a
+fricative and starts being frication.
+
+Worth recording the architectural limit behind it: **one voicing value covers
+the whole spectrum**, so the engine cannot do what a real /z/ does — a voiced
+bar low down and noisy frication up high, at the same time. The voice-bar
+variant faked it by adding a band at the fundamental; it measured identically
+to plain low-voicing and was not preferred. If voiced fricatives ever need to
+be better than this, per-band voicing is the change, and it is not a small one.
+
 **_(to fill in)_** Whether the m, and the earlier release-threshold work, still
-read the same way now the fundamental is back.
+read the same way now the fundamental is back. Re-rendered for comparison as
+`m_recheck_OLDnasal` / `m_recheck_NEWnasal`.
 
 **_(to fill in)_** Verdict on the reference render, and on whether mode 2
 should be aligned to the house sound or stay as the reference has it.
