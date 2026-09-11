@@ -76,6 +76,7 @@
     <button id="power" class="primary">Start audio</button>
     <button id="playAG">Sing Amazing Grace</button>
     <button id="playOJ">Sing Ode to Joy</button>
+    <button id="playRS">Sing House of the Rising Sun</button>
     <button id="stopBtn">Stop</button>
   </div>
 
@@ -253,6 +254,24 @@ const ODE_VMAP={60:16,62:38,64:56,65:72,67:88};
 const ODE_MEL=[[64,1],[64,1],[65,1],[67,1],[67,1],[65,1],[64,1],[62,1],[60,1],[60,1],[62,1],[64,1],[64,1.5],[62,.5],[62,2],
  [64,1],[64,1],[65,1],[67,1],[67,1],[65,1],[64,1],[62,1],[60,1],[60,1],[62,1],[64,1],[62,1.5],[60,.5],[60,2]];
 const ODE_TO_JOY={q:480, notes:ODE_MEL.map(m=>[m[0],null,null,m[1],ODE_VMAP[m[0]],"",76+(m[0]-60)*4,""])};
+/* House of the Rising Sun — traditional American folk ballad, public domain.
+   A minor, 6/8 feel. Plain block-chord harmony: Am-C-Dm-F / Am-C-E /
+   Am-C-Dm-F / Am-E-Am. Deliberately NOT the Animals' 1964 arrangement.
+   q=480ms (quarter), beats in quarters. */
+const RISING_SUN={q:480, notes:[
+ [57,null,null,1,96,"There",70,""],[60,52,45,1,110,"is",76,""],[62,52,45,1,38,"a",78,""],
+ [64,55,48,2,64,"house",86,""],[64,55,48,0.5,56,"down",80,""],[62,55,48,0.5,110,"in",76,""],
+ [65,53,50,1,16,"New",82,""],[65,53,50,1,38,"Or",84,""],[69,57,41,2,120,"leans",96,"l"],
+ [null,null,null,1,0,"",0,""],[57,null,null,1,96,"They",70,""],[60,52,45,1,70,"call",80,""],
+ [62,52,45,1,38,"the",76,""],[64,55,48,1.5,70,"Ri",88,""],[62,55,48,1.5,115,"sing",84,""],
+ [59,56,40,3,45,"sun",82,""],[null,null,null,1,0,"",0,""],[57,null,null,0.5,60,"And",68,""],
+ [57,null,null,0.5,110,"it's",68,""],[60,52,45,1,96,"been",78,""],[62,52,45,1,38,"the",76,""],
+ [64,55,48,1.5,32,"ru",84,""],[64,55,48,0.5,110,"in",80,""],[65,53,50,0.5,96,"ma",82,""],
+ [65,53,50,0.5,110,"ny",80,""],[65,53,50,0.5,38,"a",78,""],[69,57,41,1,38,"poor",92,"w"],
+ [64,57,41,1,38,"boy",84,""],[60,52,45,1,60,"And",76,""],[64,56,40,1,70,"God",86,""],
+ [62,56,40,1,70,"I",82,""],[60,56,40,1,32,"know",78,""],[59,56,40,1,64,"I'm",76,""],
+ [57,52,45,4,40,"one",80,""]
+]};
 
 function stopSong(){
  timers.forEach(clearTimeout); timers=[]; singing=false;
@@ -351,6 +370,7 @@ $("master").addEventListener("input",e=>{
 $("power").addEventListener("click",boot);
 $("playAG").addEventListener("click",()=>playSong(AMAZING_GRACE));
 $("playOJ").addEventListener("click",()=>playSong(ODE_TO_JOY));
+$("playRS").addEventListener("click",()=>playSong(RISING_SUN));
 $("stopBtn").addEventListener("click",stopSong);
 </script>
 </body>

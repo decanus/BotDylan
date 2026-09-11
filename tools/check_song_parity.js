@@ -25,11 +25,12 @@ if (start < 0 || end < 0) {
   process.exit(2);
 }
 // `const` inside eval is scoped to the eval, so hand the bindings back out.
-const S = eval(html.slice(start, end) + ";({AMAZING_GRACE, ODE_TO_JOY})");
+const S = eval(html.slice(start, end) + ";({AMAZING_GRACE, ODE_TO_JOY, RISING_SUN})");
 
 const PAIRS = [
   ["songs/amazing_grace.json", S.AMAZING_GRACE],
   ["songs/ode_to_joy.json", S.ODE_TO_JOY],
+  ["songs/house_of_the_rising_sun.json", S.RISING_SUN],
 ];
 
 let failures = 0;

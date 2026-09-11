@@ -1,0 +1,349 @@
+{
+  "name": "House of the Rising Sun",
+  "meter": "6/8",
+  "quarterMs": 480,
+  "gapMs": 60,
+  "source": "traditional American folk ballad, public domain. Plain block-chord harmony - NOT the Animals' 1964 arrangement. Transcribed by ear; units of the original transcription were eighths at q=240 ms, stored here as beats in quarters at quarterMs=480. Keep in parity with tools/simulator.html",
+  "notes": [
+    {
+      "sop": 57,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 96,
+      "syllable": "There",
+      "velocity": 70,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": 52,
+      "bass": 45,
+      "beats": 1,
+      "vowelCC": 110,
+      "syllable": "is",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": 52,
+      "bass": 45,
+      "beats": 1,
+      "vowelCC": 38,
+      "syllable": "a",
+      "velocity": 78,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 48,
+      "beats": 2,
+      "vowelCC": 64,
+      "syllable": "house",
+      "velocity": 86,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 48,
+      "beats": 0.5,
+      "vowelCC": 56,
+      "syllable": "down",
+      "velocity": 80,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": 55,
+      "bass": 48,
+      "beats": 0.5,
+      "vowelCC": 110,
+      "syllable": "in",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 65,
+      "alto": 53,
+      "bass": 50,
+      "beats": 1,
+      "vowelCC": 16,
+      "syllable": "New",
+      "velocity": 82,
+      "glide": ""
+    },
+    {
+      "sop": 65,
+      "alto": 53,
+      "bass": 50,
+      "beats": 1,
+      "vowelCC": 38,
+      "syllable": "Or",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 69,
+      "alto": 57,
+      "bass": 41,
+      "beats": 2,
+      "vowelCC": 120,
+      "syllable": "leans",
+      "velocity": 96,
+      "glide": "l"
+    },
+    {
+      "sop": null,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 0,
+      "syllable": "",
+      "velocity": 0,
+      "glide": ""
+    },
+    {
+      "sop": 57,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 96,
+      "syllable": "They",
+      "velocity": 70,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": 52,
+      "bass": 45,
+      "beats": 1,
+      "vowelCC": 70,
+      "syllable": "call",
+      "velocity": 80,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": 52,
+      "bass": 45,
+      "beats": 1,
+      "vowelCC": 38,
+      "syllable": "the",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 48,
+      "beats": 1.5,
+      "vowelCC": 70,
+      "syllable": "Ri",
+      "velocity": 88,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": 55,
+      "bass": 48,
+      "beats": 1.5,
+      "vowelCC": 115,
+      "syllable": "sing",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 59,
+      "alto": 56,
+      "bass": 40,
+      "beats": 3,
+      "vowelCC": 45,
+      "syllable": "sun",
+      "velocity": 82,
+      "glide": ""
+    },
+    {
+      "sop": null,
+      "alto": null,
+      "bass": null,
+      "beats": 1,
+      "vowelCC": 0,
+      "syllable": "",
+      "velocity": 0,
+      "glide": ""
+    },
+    {
+      "sop": 57,
+      "alto": null,
+      "bass": null,
+      "beats": 0.5,
+      "vowelCC": 60,
+      "syllable": "And",
+      "velocity": 68,
+      "glide": ""
+    },
+    {
+      "sop": 57,
+      "alto": null,
+      "bass": null,
+      "beats": 0.5,
+      "vowelCC": 110,
+      "syllable": "it's",
+      "velocity": 68,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": 52,
+      "bass": 45,
+      "beats": 1,
+      "vowelCC": 96,
+      "syllable": "been",
+      "velocity": 78,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": 52,
+      "bass": 45,
+      "beats": 1,
+      "vowelCC": 38,
+      "syllable": "the",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 48,
+      "beats": 1.5,
+      "vowelCC": 32,
+      "syllable": "ru",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 55,
+      "bass": 48,
+      "beats": 0.5,
+      "vowelCC": 110,
+      "syllable": "in",
+      "velocity": 80,
+      "glide": ""
+    },
+    {
+      "sop": 65,
+      "alto": 53,
+      "bass": 50,
+      "beats": 0.5,
+      "vowelCC": 96,
+      "syllable": "ma",
+      "velocity": 82,
+      "glide": ""
+    },
+    {
+      "sop": 65,
+      "alto": 53,
+      "bass": 50,
+      "beats": 0.5,
+      "vowelCC": 110,
+      "syllable": "ny",
+      "velocity": 80,
+      "glide": ""
+    },
+    {
+      "sop": 65,
+      "alto": 53,
+      "bass": 50,
+      "beats": 0.5,
+      "vowelCC": 38,
+      "syllable": "a",
+      "velocity": 78,
+      "glide": ""
+    },
+    {
+      "sop": 69,
+      "alto": 57,
+      "bass": 41,
+      "beats": 1,
+      "vowelCC": 38,
+      "syllable": "poor",
+      "velocity": 92,
+      "glide": "w"
+    },
+    {
+      "sop": 64,
+      "alto": 57,
+      "bass": 41,
+      "beats": 1,
+      "vowelCC": 38,
+      "syllable": "boy",
+      "velocity": 84,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": 52,
+      "bass": 45,
+      "beats": 1,
+      "vowelCC": 60,
+      "syllable": "And",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 64,
+      "alto": 56,
+      "bass": 40,
+      "beats": 1,
+      "vowelCC": 70,
+      "syllable": "God",
+      "velocity": 86,
+      "glide": ""
+    },
+    {
+      "sop": 62,
+      "alto": 56,
+      "bass": 40,
+      "beats": 1,
+      "vowelCC": 70,
+      "syllable": "I",
+      "velocity": 82,
+      "glide": ""
+    },
+    {
+      "sop": 60,
+      "alto": 56,
+      "bass": 40,
+      "beats": 1,
+      "vowelCC": 32,
+      "syllable": "know",
+      "velocity": 78,
+      "glide": ""
+    },
+    {
+      "sop": 59,
+      "alto": 56,
+      "bass": 40,
+      "beats": 1,
+      "vowelCC": 64,
+      "syllable": "I'm",
+      "velocity": 76,
+      "glide": ""
+    },
+    {
+      "sop": 57,
+      "alto": 52,
+      "bass": 45,
+      "beats": 4,
+      "vowelCC": 40,
+      "syllable": "one",
+      "velocity": 80,
+      "glide": ""
+    }
+  ]
+}
