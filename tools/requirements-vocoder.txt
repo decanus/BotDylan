@@ -1,0 +1,14 @@
+# Vocoder mode (experimental) — offline render and diagnostics.
+#
+#   python3 -m venv .venv-vocoder
+#   .venv-vocoder/bin/pip install -r tools/requirements-vocoder.txt
+#
+# Versions are PINNED on purpose. The acceptance test for vocoder_render.py is
+# a byte-for-byte match against vocoder_reference.py's output, and scipy's
+# sosfilt can differ in the last bits between releases. A byte-match is only
+# meaningful inside one pinned environment; across versions, compare with the
+# tolerance mode instead (tools/vocoder_render.py --compare --tolerant).
+#
+# No brew needed: both ship cp314 wheels for the Python 3.14 already here.
+numpy==2.5.3
+scipy==1.18.1
