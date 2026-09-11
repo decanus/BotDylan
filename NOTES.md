@@ -334,3 +334,80 @@ Nothing in session 2 has run on hardware. The build is clean and the host-side
 parity checks pass, but audio, servo motion and the audio budget are all
 unconfirmed. `AUDIO_MEMORY_BLOCKS` at 60 is a guess — read
 `AudioMemoryUsageMax()` off a real Teensy via `ENABLE_PERF_REPORT` and trim it.
+
+---
+
+# Session 3 findings
+
+## The eyebrows went missing
+
+The eyebrows disappeared when the simulator was rebuilt "to spec," because the
+spec only covered audio. The expressive layer (brows, eye wobble, jaw easing
+rates) carries the robot's character and is part of the spec, not decoration.
+Any rebuild or port must preserve it.
+
+Concretely, what the face does and why it reads as alive:
+
+- **Nothing snaps.** Jaw, brows and eyes are all eased toward a target rather
+  than set. The jaw's asymmetric rates (0.28 open, 0.11 close) were the
+  original instance of this; the brows use the same pattern at 0.08/frame.
+- **Motion is tied to sound, not to the clock.** The eyes only wobble while
+  something is sounding, and the brows only lift while something is singing. A
+  face that idles in motion reads as a screensaver.
+- **The brows lift 2 units** — small. At this scale the difference between
+  "expressive" and "cartoon" is a couple of pixels.
+
+The measured eye wobble is `sin(t/380) × 2`, which is ±2 units at a period of
+2π × 380 ms ≈ **2.39 s** — worth stating because the spec handed over said
+~2.6 s, and the code is the source of truth.
+
+## ⚠️ The jaw eases 3.3x faster on hardware than in the simulator
+
+Found while deriving the brow constant. The parity rule compares *numbers*,
+and these particular numbers do not mean the same thing in both places.
+
+Both implementations run the same one-pole step, `x += (target - x) * rate`.
+But the simulator ticks on `requestAnimationFrame` at ~60 fps, and the firmware
+ticks at 200 Hz. A per-tick rate is therefore 3.33x more aggressive on the
+Teensy — same constant, different clock:
+
+| | sim @ 60 fps | firmware @ 200 Hz |
+|---|---|---|
+| jaw open 0.28 | 50.7 ms | **15.2 ms** |
+| jaw close 0.11 | 143.0 ms | **42.9 ms** |
+| brow 0.08 | 199.9 ms | 60.0 ms |
+
+The jaw rates were adopted from the simulator in session 2 on the grounds that
+the simulator is where the motion was tuned by eye. But copying the *number*
+rather than the *feel* means the hardware jaw snaps in 15 ms where the tuned
+version takes 51 ms. That is very likely to read as a twitch rather than a
+syllable.
+
+The fix is to express these as time constants, the way `VOWEL_SMOOTH_MS` and
+`PORTAMENTO_MS` already are, and derive the per-tick coefficient:
+
+    alpha = 1 - exp(-CONTROL_INTERVAL_MS / TIME_CONSTANT_MS)
+
+    jaw open   50.7 ms -> alpha 0.093851 per 5 ms tick
+    jaw close 143.0 ms -> alpha 0.034356 per 5 ms tick
+
+**Not applied.** It changes the jaw feel on hardware, and nothing has run on
+hardware yet — so this is a decision for the first real listen, not a silent
+correction. The brow module was built the right way from the start
+(`BROW_SMOOTH_MS = 200`), so the two approaches sit side by side in `face/`
+until this is settled.
+
+Worth checking whether anything else in the repo copies a per-frame rate across
+the clock boundary. The vowel and portamento smoothing are already time
+constants, so they are fine.
+
+## Minor-key repertoire
+
+**_(to fill in)_** House of the Rising Sun is the first minor-key song, and new
+territory for the vowel choreography. The open question: darker vowels may want
+to sit lower and more closed than the major-key songs do — the same syllable
+that wants "ah" in Amazing Grace may want something nearer "oh" here. Log what
+the A minor and E major bars end up wanting.
+
+**_(to fill in)_** Whether the E-major bars (the G#3 in the alto) want a
+brighter vowel than the Am bars around them, to lean on the raised third.

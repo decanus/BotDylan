@@ -24,6 +24,17 @@ const int JAW_PIN        = 3;
 const int JAW_CLOSED_DEG = 12;   // trim these two to your linkage
 const int JAW_OPEN_DEG   = 68;
 
+// ===== BROW ACTUATOR (reserved) ============================================
+// Eyebrows are a first-class face feature, not a simulator flourish. The pin
+// is claimed now so the firmware is ready before the head is; one micro servo
+// driving both brows through a linkage is the intended build.
+// Set ENABLE_BROW_SERVO to 1 once a servo is actually wired to BROW_PIN — the
+// motion model tracks browTarget either way, so nothing else changes.
+#define ENABLE_BROW_SERVO 0
+const int BROW_PIN      = 4;
+const int BROW_DOWN_DEG = 80;   // trim these two to your linkage
+const int BROW_UP_DEG   = 62;
+
 // ===== DIAGNOSTICS =========================================================
 // Prints audio CPU and memory headroom over USB serial every couple of
 // seconds, but only when a host is actually listening. Costs nothing when 0.

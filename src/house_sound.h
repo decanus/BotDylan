@@ -105,6 +105,18 @@ const float VOWEL_START         = 2.0f; // "ah"
 // velocity to follow, so the mouth sits at a neutral opening rather than shut.
 const float JAW_IDLE_OPEN = 0.45f;
 
+// ===== BROWS ===============================================================
+// The brows lift while anything is singing and settle back after. Two units of
+// travel in the simulator's coordinates — small on purpose; at that scale the
+// gap between "expressive" and "cartoon" is a couple of pixels.
+//
+// Expressed as a TIME CONSTANT, not a per-tick rate, and this matters: the
+// simulator eases 0.08 per animation frame at ~60 fps, which is a ~200 ms time
+// constant. Copying the number 0.08 to a 200 Hz control loop would ease 3.3x
+// too fast. Same number, different tick rate, different feel. See NOTES.md.
+const float BROW_SMOOTH_MS = 200.0f;
+const float BROW_RAISED    = 1.0f;   // 0 resting .. 1 fully raised
+
 // ===== AUDIO ENGINE ========================================================
 // Blocks for the Audio Library. Each voice is waveform + LFO + 3 filters +
 // 2 mixers + envelope, so this has to grow with the choir. Watch

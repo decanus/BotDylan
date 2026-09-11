@@ -50,6 +50,7 @@
  *   voice/choir         the singers together: shared vowel, channel map
  *   voice/presets/      vowel formant tables — the tuning data
  *   face/jaw            eased servo motion model
+ *   face/brow           eased brow motion model (pin reserved)
  *   midi_io/            the three inputs + the MIDI map
  *
  * Under PlatformIO the Arduino IDE's Tools > USB Type > "Serial + MIDI" is
@@ -60,6 +61,7 @@
 #include <Audio.h>   // AudioProcessorUsage / AudioMemoryUsage
 
 #include "config.h"
+#include "face/brow.h"
 #include "face/jaw.h"
 #include "house_sound.h"
 #include "midi_io/midi_io.h"
@@ -77,6 +79,7 @@ void setup() {
 #endif
   choirBegin();   // audio memory, then every singer's nodes
   jawBegin();     // servo to its closed position
+  browBegin();    // brow motion model (pin reserved, see config.h)
   midiBegin();    // USB device, DIN/TRS serial, USB host
 }
 
@@ -89,6 +92,7 @@ void loop() {
     controlTimer = 0;
     choirUpdate();
     jawUpdate(choirVowelPos());
+    browUpdate();
   }
 
 #if ENABLE_PERF_REPORT

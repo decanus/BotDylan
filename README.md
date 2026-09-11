@@ -89,6 +89,24 @@ Digitakt tip: p-lock CC1 per step and each note gets its own vowel; p-lock CC3
 alongside it and each note gets its own articulation. That is as close to
 lyrics as the firmware gets, and deliberately so — see NOTES.md on consonants.
 
+## Face specification
+
+The expressive layer is **part of the spec, not decoration** — it carries the
+robot's character, and a rebuild that drops it has lost something real. See
+NOTES.md on how the eyebrows went missing once already.
+
+**Source of truth: `tools/simulator.html`.** These values live there and are
+mirrored into `src/face/` as the hardware catches up.
+
+| Element | Behaviour | Parameters |
+|---|---|---|
+| Jaw | Eases toward a target, never snaps. Opens fast, closes lazily — a syllable starts abruptly and the mouth relaxes shut. Wider on louder notes, and narrowed by closed vowels. | open 0.28 / close 0.11 per control tick; openness `0.35 + 0.65 × velocity`; vowel narrowing up to 35% at the table's ends |
+| Eye wobble | Pupils drift side to side, but **only while sound is on**. A face that idles in motion reads as a screensaver. | ±2 units, `sin(t / 380 ms)` → period ≈ 2.39 s |
+| Eyebrows | Ease into a raised position while anything is singing — song, keyboard or MIDI — and ease back down after. | raised 2 units, eased 0.08 per frame |
+
+The common rule across all three: **nothing snaps, and motion is tied to sound
+rather than to the clock.**
+
 ## The parity rule
 
 `tools/simulator.html` is a standalone, dependency-free browser twin of the
@@ -203,6 +221,12 @@ the graph is documented in one place.
 `face/` deliberately knows nothing about `voice/`: `main.cpp` passes the vowel
 position into `jawUpdate()`, and `choir.cpp` owns the jaw target. Eyes, when
 they arrive, become a sibling of `jaw.*` with the same shape.
+
+**Eyebrows are a first-class face feature**, not a simulator flourish. The
+physical head should carry a brow actuator — one micro servo driving both brows
+through a linkage is fine — or a deliberately angled static brow if it stays
+passive. `src/face/` reserves a PWM pin and a `browTarget` in the motion model
+now, mirroring the jaw, so the firmware side is ready before the hardware is.
 
 ## Adding a voice preset
 

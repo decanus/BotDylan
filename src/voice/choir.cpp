@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 
+#include "face/brow.h"
 #include "face/jaw.h"
 #include "house_sound.h"
 #include "voice/audio_graph.h"
@@ -71,11 +72,15 @@ void choirNoteOn(int channel, int note, int velocity) {
   } else if (jawTarget() == 0.0f) {
     jawSetTarget(JAW_IDLE_OPEN);
   }
+  browSetTarget(BROW_RAISED);   // brows lift for any voice, not just the soprano
 }
 
 void choirNoteOff(int channel, int note) {
   VOICES[voiceForChannel(channel)]->noteOff(note);
-  if (!anySounding()) jawSetTarget(0.0f);
+  if (!anySounding()) {
+    jawSetTarget(0.0f);
+    browSetTarget(0.0f);
+  }
 }
 
 void choirAllNotesOff() {
@@ -83,6 +88,7 @@ void choirAllNotesOff() {
   pendingGlide = GLIDE_NONE;
   glideActive  = false;
   jawSetTarget(0.0f);
+  browSetTarget(0.0f);
 }
 
 void choirSetVowelCC(int value) {
