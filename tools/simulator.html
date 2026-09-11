@@ -65,6 +65,8 @@
       <circle cx="130" cy="50" r="22" fill="#F1EFE9" stroke="#C4C1B8"/>
       <circle id="pupilL" cx="70" cy="50" r="9" fill="#22211E"/>
       <circle id="pupilR" cx="130" cy="50" r="9" fill="#22211E"/>
+      <path id="browL" d="M 52 24 Q 70 18 88 24" stroke="#6E6B63" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path id="browR" d="M 112 24 Q 130 18 148 24" stroke="#6E6B63" stroke-width="3" fill="none" stroke-linecap="round"/>
       <ellipse id="mouth" cx="100" cy="95" rx="20" ry="2.5" fill="#22211E"/>
     </svg>
     <span id="syllable">&nbsp;</span>
@@ -131,7 +133,7 @@ const VIBRATO_MAX_CENTS=112;
 const JAW={openRate:0.28, closeRate:0.11};
 
 let ctx=null, master=null, voices=[], timers=[], singing=false;
-let jawA=0, jawT=0, vowelPos=2, anyOn=false, vibDepthScale=1;
+let jawA=0, jawT=0, vowelPos=2, anyOn=false, browA=0, vibDepthScale=1;
 
 const $=id=>document.getElementById(id);
 const mtof=n=>440*Math.pow(2,(n-69)/12);
@@ -216,6 +218,10 @@ function tick(){
  const wob=anyOn?Math.sin(Date.now()/380)*2:0;
  $("pupilL").setAttribute("cx",(70+wob).toFixed(1));
  $("pupilR").setAttribute("cx",(130+wob).toFixed(1));
+ browA+=(((singing||anyOn)?2:0)-browA)*0.08;
+ const bu=browA.toFixed(2);
+ $("browL").setAttribute("d","M 52 "+(24-bu)+" Q 70 "+(18-bu)+" 88 "+(24-bu));
+ $("browR").setAttribute("d","M 112 "+(24-bu)+" Q 130 "+(18-bu)+" 148 "+(24-bu));
  requestAnimationFrame(tick);
 }
 
