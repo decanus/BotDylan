@@ -69,12 +69,19 @@ def meta_name(text):
     return b"\xff\x03" + vlq(len(raw)) + raw
 
 
+def meta_lyric(text):
+    """FF 05 — the syllable. Without this the round trip through MIDI loses
+    the lyric entirely, since nothing else in the file carries it."""
+    raw = text.encode("ascii", "replace")
+    return b"\xff\x05" + vlq(len(raw)) + raw
+
+
 def convert(song, ticks_per_quarter):
     quarter_ms = song["quarterMs"]
     gap_ms = song.get("gapMs", 60)
     gap_ticks = round(gap_ms / quarter_ms * ticks_per_quarter)
 
-    # Track 0: tempo and time signature only.
+    # Track 0: tempo, time signature, and the lyric.
     usec_per_quarter = int(round(quarter_ms * 1000))
     meta = [
         (0, 0, meta_name(song.get("name", "song"))),
@@ -82,6 +89,12 @@ def convert(song, ticks_per_quarter):
     ]
     num, den = (int(x) for x in song.get("meter", "4/4").split("/"))
     meta.append((0, 2, b"\xff\x58\x04" + bytes([num, den.bit_length() - 1, 24, 8])))
+
+    tick = 0
+    for note in song["notes"]:
+        if note.get("syllable"):
+            meta.append((tick, 3, meta_lyric(note["syllable"])))
+        tick += round(note["beats"] * ticks_per_quarter)
 
     tracks = [track(meta)]
 
