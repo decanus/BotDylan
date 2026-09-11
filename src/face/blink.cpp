@@ -28,18 +28,27 @@ static int   phaseMs = -1;      // ms into the current blink; -1 = waiting
 static int   waitMs = 0;        // ms left before the next one
 static bool  doubleQueued = false;
 
+// Called when a blink ENDS. The simulator schedules from the moment a blink
+// starts, so a gap measured from the end has to lose the envelope it just
+// played or every interval runs BLINK_MS long. The doubled blink needs no such
+// correction: its 90 ms is defined as the pause between the pair.
 static void scheduleNext() {
   // A blink occasionally comes in pairs, and doubleQueued is the only record
   // that stops a pair becoming a triple. random() is unseeded on purpose: a
   // fixed power-up sequence is easier to watch on the bench, and nothing here
   // needs unpredictability — only the absence of an obvious period.
   doubleQueued = !doubleQueued && random(1000) < (long)(BLINK_DOUBLE_CHANCE * 1000.0f);
-  waitMs = doubleQueued ? BLINK_DOUBLE_GAP_MS
-                        : (int)random(BLINK_GAP_MIN_MS, BLINK_GAP_MAX_MS);
+  waitMs = doubleQueued
+         ? BLINK_DOUBLE_GAP_MS
+         : (int)random(BLINK_GAP_MIN_MS, BLINK_GAP_MAX_MS) - BLINK_MS;
 }
 
 void blinkBegin() {
-  scheduleNext();
+  // Deliberately not scheduleNext(): that can roll a doubled blink, and the
+  // short gap is the pause BETWEEN a pair, never the wait before the first
+  // blink of all. Rolling it here would open the eyes 90 ms after boot on
+  // roughly one power-up in five.
+  waitMs = (int)random(BLINK_GAP_MIN_MS, BLINK_GAP_MAX_MS);
 #if ENABLE_LID_SERVO
   lidServo.attach(LID_PIN);
   lidServo.write(LID_OPEN_DEG);

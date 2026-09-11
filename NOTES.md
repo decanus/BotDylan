@@ -498,3 +498,33 @@ better with the artifact than without.
 
 **_(to fill in)_** Whether the naive transcriber's 80–800 Hz range is enough in
 practice, or whether humming down at the bass part needs the lower bound moved.
+
+## Three hardware questions the head spec opens
+
+`hardware/head_spec.md` arrived in session 3 and raises three things that are
+not firmware problems but are recorded here, because this file is where open
+questions live.
+
+**The lid servo cannot shut in 56 ms.** This one is settled arithmetic rather
+than an open question, and it is the sharpest of the three. The blink shuts in
+the first 40% of `BLINK_MS`, so 56 ms; the placeholder sweep in `config.h` is
+85°; an MG90S at roughly 100 ms per 60° needs about 142 ms for that. It is
+2.5x short, not marginal. Either the linkage is geared so about 34° of servo
+drives the full lid travel — a step-up at the lid, the opposite of what the
+brows need — or `BLINK_MS` grows to about 354 ms. Gearing keeps parity with
+the simulator and is preferable if the lid is light enough; lengthening is the
+safe fallback. Nothing should be wired to the placeholder angles expecting it
+to track.
+
+**One servo cannot make the brows disagree.** The simulator gives each brow an
+independent wander and a 30% chance one lifts alone, which is a real part of
+why the face reads as alive. A shared linkage off one MG90S physically cannot
+reproduce it. Either the build accepts synchronised brows — and the simulator
+keeps an expressive flourish the hardware does not have, which is exactly the
+kind of drift the parity rule exists to stop — or it budgets a fourth servo.
+
+**Every millimetre rests on one assumed speaker.** The reference build is drawn
+proportionally, not dimensioned. The spec's mm column is anchored on a ⌀48-unit
+speaker circle assumed to be a 50 mm driver, giving 1.04 mm/unit. If the real
+driver is 40 mm the whole robot shrinks by a fifth. Measure the speaker first
+and re-anchor before anything prints at final size.

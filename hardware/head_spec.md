@@ -42,10 +42,12 @@ factor as a single OpenSCAD variable so everything rescales from that one number
 | Neck post                | 16 × 30                | 17 × 31          | Head block down to the deck                  |
 | Speaker                  | ⌀48                    | ⌀50              | **The scale anchor**                         |
 
-Two things worth noticing in that table. The eyes span **82% of the head block** — far past the ≥55%
-target the old spec set, and the single strongest thing about the face. And the jaw drop is **18 mm**,
-which settles a question the previous revision left open: the hinged jaw and the drawn mouth now agree,
-because the cavity is drawn as a real opening rather than a stylised ellipse.
+Two things worth noticing in that table. The eyes span **82% of the head block**, which is the single
+strongest thing about the face — a conventional "expressive robot" target is somewhere above half the
+face width, and this clears that comfortably. And the jaw plate and the mouth cavity agree by
+construction: the cavity is a real 60 × 26 opening that the plate uncovers, not a stylised shape drawn
+independently of the mechanism, so there is no gap between what the drawing shows and what the hinge
+does.
 
 ## What must fit on the deck (buy-list components, measure before modeling)
 
@@ -102,7 +104,10 @@ the only motion that survives silence. `src/face/blink.cpp` owns its own timer; 
   cowl; shut, it has swept the aperture.
 - **One shaft through both eye centres** carries both lids — 67 mm apart — so a single MG90S blinks
   both eyes in sync with no visible linkage.
-- Sweep is roughly 85°, matching `LID_OPEN_DEG`..`LID_SHUT_DEG` in `config.h`.
+- **Gear the linkage, do not drive the lid 1:1.** `LID_OPEN_DEG`..`LID_SHUT_DEG` in `config.h` is a
+  placeholder 85° that the servo cannot sweep in the 56 ms the blink allows. Size the linkage so
+  roughly **34°** of servo produces the full lid travel — a step-up at the lid, the opposite of the
+  reduction the brows need. See the open question below for the alternative.
 - The lid never fully closes: `BLINK_MIN_OPEN` leaves a 5% sliver. That is a firmware constant, but it
   also means **the mechanism does not need a hard shut stop** — do not design the lid to seat.
 - The cowl already hoods the top of each eye, so it is the natural parking place. Size the cowl depth
@@ -162,8 +167,8 @@ The open frame does most of this for free, which is the main practical argument 
 3. **Jaw test rig** — jaw plate, pivot, linkage, servo mount. Iterate here until the motion looks
    alive; this is where most reprints happen, and where two open firmware questions get answered.
 4. **Eye and lid module** — one ball, one cowl, one lid shell, one shaft, one servo. Prove the lid
-   vanishes into the cowl when open, and time the blink: it shuts in 56 ms, which is at the edge of
-   what an MG90S will do.
+   vanishes into the cowl when open, then settle the servo-speed problem below before sizing the
+   linkage: a 56 ms close over the placeholder 85° sweep is about 2.5× faster than an MG90S goes.
 5. **Brow module** — one servo, two arms, shared linkage, hard stop at the top-bar ceiling.
 6. **Head block** — integrates eyes, lids, jaw and brows onto the neck post.
 7. **Finish** — cable routing, feet, any paint or vinyl detailing.
@@ -173,8 +178,8 @@ brow height get judged by eye at real scale, not on a screen.
 
 ## Open questions this build answers
 
-Nothing in this repo has run on hardware yet. These are recorded as open in NOTES.md and are
-mechanical as much as they are firmware:
+Nothing in this repo has run on hardware yet. Each of these is mechanical as much as it is firmware,
+and each is mirrored in NOTES.md, which is the repo's register of open questions:
 
 - **Does the jaw read as a syllable or a twitch?** The jaw rates were copied from the simulator as
   per-tick numbers, but the firmware ticks at 200 Hz against the simulator's ~60 fps, so the hardware
@@ -183,10 +188,15 @@ mechanical as much as they are firmware:
   The **jaw test rig is that listen**. Build it before deciding.
 - **Can an MG90S follow a 200 Hz control rate?** Linkage mass and slop are part of the answer, so it
   belongs to the jaw test rig too.
-- **Can it shut a lid in 56 ms?** An MG90S is specified around 100 ms per 60°, and the lid sweep is
-  about 85°. The eye and lid module answers it. If the servo cannot keep up, lengthen `BLINK_MS`
-  rather than fight it — a slower blink still reads fine, a servo buzzing against its own slew limit
-  does not.
+- **The lid servo cannot do 56 ms, and something has to give.** This one is not really open — the
+  arithmetic already says no. The blink shuts in 56 ms (40% of `BLINK_MS`), the placeholder sweep in
+  `config.h` is 85°, and an MG90S at ~100 ms per 60° needs about **142 ms** for that. It is 2.5×
+  short, not marginal. Two ways out, and the eye and lid module is where one gets chosen:
+  **gear the linkage** so roughly 34° of servo drives the full lid travel — a step-up at the lid,
+  the opposite of what the brows need — or **lengthen `BLINK_MS`** to about 354 ms and accept a
+  slower blink. Gearing keeps parity with the simulator and is the better answer if the lid is light
+  enough to move that fast; lengthening is the safe fallback. Do not wire a servo to the placeholder
+  angles and expect it to track.
 - **Do the brows move together or independently?** The simulator deliberately makes them disagree, and
   one servo cannot. Either the hardware accepts synchronised brows or it buys a fourth servo, and the
   brow module is where that gets decided.
