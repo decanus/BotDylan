@@ -61,10 +61,10 @@
     <span class="led" id="led"></span>
     <svg id="face" viewBox="0 0 200 130" width="210" height="137" role="img" aria-label="Robot face">
       <rect x="20" y="8" width="160" height="114" rx="16" fill="#fff" stroke="#C4C1B8"/>
-      <circle cx="70" cy="50" r="22" fill="#F1EFE9" stroke="#C4C1B8"/>
-      <circle cx="130" cy="50" r="22" fill="#F1EFE9" stroke="#C4C1B8"/>
-      <circle id="pupilL" cx="70" cy="50" r="9" fill="#22211E"/>
-      <circle id="pupilR" cx="130" cy="50" r="9" fill="#22211E"/>
+      <ellipse id="eyeL" cx="70" cy="50" rx="22" ry="22" fill="#F1EFE9" stroke="#C4C1B8"/>
+      <ellipse id="eyeR" cx="130" cy="50" rx="22" ry="22" fill="#F1EFE9" stroke="#C4C1B8"/>
+      <ellipse id="pupilL" cx="70" cy="50" rx="9" ry="9" fill="#22211E"/>
+      <ellipse id="pupilR" cx="130" cy="50" rx="9" ry="9" fill="#22211E"/>
       <path id="browL" d="M 52 24 Q 70 18 88 24" stroke="#6E6B63" stroke-width="3" fill="none" stroke-linecap="round"/>
       <path id="browR" d="M 112 24 Q 130 18 148 24" stroke="#6E6B63" stroke-width="3" fill="none" stroke-linecap="round"/>
       <ellipse id="mouth" cx="100" cy="95" rx="20" ry="2.5" fill="#22211E"/>
@@ -162,9 +162,31 @@ const JAW={openRate:0.28, closeRate:0.11};
    Units are SVG units in a 200x130 viewBox — 2 units was 2 px and invisible.
    Mirrored in the firmware as 0.5 + 0.5*velocity on a 0..1 scale. */
 const BROW={base:4, vel:4, rate:0.08};
+/* The liveliness layer. A face that repeats exactly reads as a machine, so
+   gaze, blinks and brows all run off random timers rather than a clock.
+   Eyes SACCADE — flick to a new target and hold — because that is what real
+   eyes do; a sine sweep looks like a searchlight. Times in ms, distances in
+   SVG units. This is the reference for the hardware face too: see README. */
+const FACE={
+ gazeX:4.0, gazeY:2.2,           // how far the pupils will travel
+ saccadeEase:0.35,               // fast: a flick, not a glide
+ gazeHoldMin:600, gazeHoldMax:2600,
+ driftAmp:0.45, driftMs:5200,    // slow wander on top, so a held gaze still breathes
+ blinkMin:1800, blinkMax:6200, blinkMs:140, doubleBlink:0.18,
+ browWander:1.1, browAsym:0.3,   // per-brow, and the chance one lifts alone
+ browWanderMin:900, browWanderMax:3200, browWanderEase:0.05,
+ browMax:8.5                     // lift + wander together, or the brow leaves the head:
+                                 // the curve's control point is 6 units above its ends,
+                                 // and the face frame starts at y=8.
+};
 
 let ctx=null, master=null, voices=[], timers=[], singing=false;
 let jawA=0, jawT=0, vowelPos=2, anyOn=false, browA=0, browV=0, vibDepthScale=1;
+/* face state: gaze target and eased position, blink schedule, brow wander */
+let gazeX=0, gazeY=0, gazeXA=0, gazeYA=0, nextSaccade=0;
+let blinkAt=0, blinkStart=null, blinkQueued=false;
+let browOffL=0, browOffR=0, browOffLA=0, browOffRA=0, nextBrowWander=0;
+const rand=(a,b)=>a+Math.random()*(b-a);
 
 const $=id=>document.getElementById(id);
 const mtof=n=>440*Math.pow(2,(n-69)/12);
@@ -243,17 +265,65 @@ function voiceOff(idx){
 function allOff(){ voices.forEach((_,i)=>voiceOff(i)); }
 
 function tick(){
+ const now=performance.now();
+
+ /* ---- mouth: eased, and narrowed by closed vowels ---- */
  const vowelOpen=1-0.35*Math.abs(vowelPos-2)/2;
  const target=jawT*vowelOpen;
  jawA+=(target-jawA)*(target>jawA?JAW.openRate:JAW.closeRate);
  $("mouth").setAttribute("ry",(2.5+22*jawA).toFixed(1));
- const wob=anyOn?Math.sin(Date.now()/380)*2:0;
- $("pupilL").setAttribute("cx",(70+wob).toFixed(1));
- $("pupilR").setAttribute("cx",(130+wob).toFixed(1));
+
+ /* ---- gaze: hold, then flick somewhere new. Singing looks around more. ---- */
+ if(now>=nextSaccade){
+  gazeX=rand(-FACE.gazeX,FACE.gazeX);
+  gazeY=rand(-FACE.gazeY,FACE.gazeY);
+  const busy=(singing||anyOn)?0.6:1;
+  nextSaccade=now+rand(FACE.gazeHoldMin,FACE.gazeHoldMax)*busy;
+ }
+ gazeXA+=(gazeX-gazeXA)*FACE.saccadeEase;
+ gazeYA+=(gazeY-gazeYA)*FACE.saccadeEase;
+ const drift=Math.sin(now/FACE.driftMs*2*Math.PI)*FACE.driftAmp;
+
+ /* ---- blink: random, occasionally doubled, always running ---- */
+ if(blinkStart===null&&now>=blinkAt){
+  blinkStart=now;
+  if(!blinkQueued&&Math.random()<FACE.doubleBlink){ blinkQueued=true; blinkAt=now+FACE.blinkMs+90; }
+  else { blinkQueued=false; blinkAt=now+rand(FACE.blinkMin,FACE.blinkMax); }
+ }
+ let lid=1;
+ if(blinkStart!==null){
+  const p=(now-blinkStart)/FACE.blinkMs;
+  if(p>=1){ blinkStart=null; }
+  else lid=p<0.4?1-p/0.4:(p-0.4)/0.6;   // shuts fast, opens a little slower
+ }
+ const open=Math.max(0.05,lid);
+
+ $("eyeL").setAttribute("ry",(22*open).toFixed(2));
+ $("eyeR").setAttribute("ry",(22*open).toFixed(2));
+ $("pupilL").setAttribute("cx",(70+gazeXA+drift).toFixed(2));
+ $("pupilR").setAttribute("cx",(130+gazeXA+drift).toFixed(2));
+ $("pupilL").setAttribute("cy",(50+gazeYA).toFixed(2));
+ $("pupilR").setAttribute("cy",(50+gazeYA).toFixed(2));
+ $("pupilL").setAttribute("ry",(9*open).toFixed(2));
+ $("pupilR").setAttribute("ry",(9*open).toFixed(2));
+
+ /* ---- brows: velocity lift, plus an independent wander per side ---- */
+ if(now>=nextBrowWander){
+  browOffL=rand(-FACE.browWander,FACE.browWander);
+  browOffR=rand(-FACE.browWander,FACE.browWander);
+  if(Math.random()<FACE.browAsym) (Math.random()<0.5?browOffL+=1.4:browOffR+=1.4);
+  nextBrowWander=now+rand(FACE.browWanderMin,FACE.browWanderMax);
+ }
+ browOffLA+=(browOffL-browOffLA)*FACE.browWanderEase;
+ browOffRA+=(browOffR-browOffRA)*FACE.browWanderEase;
+
  browA+=(((singing||anyOn)?(BROW.base+BROW.vel*browV):0)-browA)*BROW.rate;
- const be=(24-browA).toFixed(2), bc=(18-browA).toFixed(2);   // end, control
- $("browL").setAttribute("d","M 52 "+be+" Q 70 "+bc+" 88 "+be);
- $("browR").setAttribute("d","M 112 "+be+" Q 130 "+bc+" 148 "+be);
+ const idle=(singing||anyOn)?1:0.45;   // a resting face still moves, just less
+ const cap=v=>Math.min(FACE.browMax,v);
+ const bl=cap(browA+browOffLA*idle), br=cap(browA+browOffRA*idle);
+ $("browL").setAttribute("d","M 52 "+(24-bl).toFixed(2)+" Q 70 "+(18-bl).toFixed(2)+" 88 "+(24-bl).toFixed(2));
+ $("browR").setAttribute("d","M 112 "+(24-br).toFixed(2)+" Q 130 "+(18-br).toFixed(2)+" 148 "+(24-br).toFixed(2));
+
  requestAnimationFrame(tick);
 }
 

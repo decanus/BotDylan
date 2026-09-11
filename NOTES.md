@@ -387,6 +387,39 @@ against whether the code runs.** The animation was correct in both cases.
 The brow control point reaches y=10 at full tilt and the face frame starts at
 y=8, so there are only 2 units of headroom left above it.
 
+## A face that repeats reads as a machine
+
+Three complaints, one cause: the eyes "just move back and forth", the brows
+"kinda stay", and he never blinks.
+
+- **The pupils tracked `sin(now/380)`.** Both eyes, in lockstep, horizontally
+  only, forever. Perfectly smooth and perfectly periodic, which is exactly what
+  nothing alive does. Real eyes *saccade*: hold still, flick somewhere new,
+  hold again. Replaced with random gaze targets, a fast flick (eased 0.35, so
+  roughly 60 ms — real saccades are 30–80 ms), and a slow drift underneath so a
+  held gaze still breathes.
+- **No blink at all.** Now every 1.8–6.2 s, 140 ms, shutting faster than it
+  opens, with an 18% chance of a double. Measured over 30 s it fires 8–9 times,
+  which is in the human range of roughly 15–20 a minute.
+- **The brows "kinda stay" was measurable, not vague.** They were driven by
+  note velocity, but real song velocities cluster: Amazing Grace runs 72–104,
+  House of the Rising Sun 68–96. That is **1.0 px and 0.9 px** of per-note
+  travel. The lift was visible; the modulation was not. Fixed with an
+  independent slow wander per brow and an occasional single-brow raise, so the
+  two are rarely level — about 9 px of travel and 2 px of asymmetry.
+
+The general point, now demonstrated three times on this face: **an expressive
+parameter has to be checked against what it looks like.** All three of these
+were animating correctly the whole time.
+
+One geometric constraint worth keeping: the brow curve's control point sits 6
+units above its endpoints and the face frame starts at y=8, so total brow lift
+is capped at 8.5 or the eyebrows leave the head. Verified at worst case over
+40 s at full velocity — control point bottoms out at y=9.50.
+
+**_(to fill in)_** Whether the saccade timing feels attentive or shifty. Faster
+holds read as nervous; slower read as sleepy.
+
 ## ⚠️ The jaw eases 3.3x faster on hardware than in the simulator
 
 Found while deriving the brow constant. The parity rule compares *numbers*,

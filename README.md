@@ -129,11 +129,19 @@ mirrored into `src/face/` as the hardware catches up.
 | Element | Behaviour | Parameters |
 |---|---|---|
 | Jaw | Eases toward a target, never snaps. Opens fast, closes lazily — a syllable starts abruptly and the mouth relaxes shut. Wider on louder notes, and narrowed by closed vowels. | open 0.28 / close 0.11 per control tick; openness `0.35 + 0.65 × velocity`; vowel narrowing up to 35% at the table's ends |
-| Eye wobble | Pupils drift side to side, but **only while sound is on**. A face that idles in motion reads as a screensaver. | ±2 units, `sin(t / 380 ms)` → period ≈ 2.39 s |
-| Eyebrows | Ease up while anything is singing — song, keyboard or MIDI — and further on a harder note, so a phrase has expression rather than one lift per song. Ease back down after. | 4 units at velocity 0, 8 at velocity 127; eased 0.08 per frame. In the firmware, 0.5–1.0 on a 0–1 scale |
+| Gaze | **Saccades**: the pupils hold, then flick somewhere new, horizontally and vertically. A slow drift runs underneath so a held gaze still breathes. Looks around more often while singing. | ±4.0 × ±2.2 units; hold 0.6–2.6 s (×0.6 while singing); flick eased 0.35; drift ±0.45 over 5.2 s |
+| Blink | Random interval, shuts faster than it opens, occasionally doubles. Runs always, including at rest. | every 1.8–6.2 s; 140 ms, 40% closing / 60% opening; 18% chance of a second blink 90 ms later |
+| Eyebrows | Lift while anything is singing and further on a harder note, plus an independent slow wander per side so the two are rarely level. Sometimes one lifts alone. | 4 units at velocity 0, 8 at 127; wander ±1.1 per side, 30% chance of a +1.4 single-brow raise; eased 0.08/frame; total capped at 8.5 so the brow stays inside the head |
 
-The common rule across all three: **nothing snaps, and motion is tied to sound
-rather than to the clock.**
+Two rules run through all of it: **nothing snaps**, and **nothing repeats**.
+Gaze, blinks and brow wander are all driven by random timers rather than a
+clock, because a face that repeats exactly reads as a machine — the pupils used
+to track a sine wave and looked like a searchlight. The jaw and the brow lift
+stay tied to the notes; everything else is deliberately irregular.
+
+Eyes and blinking exist in the simulator only for now. The firmware has jaw and
+brow; when the head gets eyes (a second servo, or the round displays on the
+roadmap) this table is the spec to port.
 
 ## The parity rule
 
